@@ -57,6 +57,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   create() {
+    document.getElementById("boot-msg")?.remove();
     this.scene.start("Title");
   }
 }
