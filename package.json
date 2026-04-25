@@ -1,0 +1,27 @@
+{
+  "name": "agentic-legends",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Save the land of Codia and restore the sacred Mainline with the help of three mythical creatures and their gifts.",
+  "type": "module",
+  "scripts": {
+    "assets": "tsx scripts/optimize-assets.ts",
+    "dev": "vite",
+    "build": "pnpm run assets && tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["phaser", "platformer", "github", "skills", "codia"],
+  "author": "arilivigni",
+  "license": "MIT",
+  "packageManager": "pnpm@10.33.0",
+  "dependencies": {
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "sharp": "^0.34.5",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10"
+  }
+}

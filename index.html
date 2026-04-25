@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d1117" />
+    <title>Agentic Legends — Save the Mainline of Codia</title>
+    <meta
+      name="description"
+      content="Save the land of Codia and restore the sacred Mainline with the help of three mythical creatures and their gifts." />
+    <style>
+      :root { color-scheme: dark; }
+      html, body { margin: 0; padding: 0; background: #0d1117; height: 100%; overflow: hidden; font-family: system-ui, sans-serif; color: #e6edf3; }
+      #game { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+      #game canvas { image-rendering: pixelated; max-width: 100vw; max-height: 100vh; box-shadow: 0 0 60px rgba(120, 90, 220, 0.25); }
+      #boot-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <div id="boot-msg">Loading Codia…</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
