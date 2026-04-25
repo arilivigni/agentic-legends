@@ -37,7 +37,10 @@ Corruption** in a three-phase boss fight that demands every power you've earned.
 | Action | Keys |
 | --- | --- |
 | Move | `←` / `→` or `A` / `D` |
-| Jump (and double-jump after Fork) | `Space` or `W` |
+| Run (sprint) | `Shift` (or `X`) |
+| Jump (and double-jump after Fork) | `Space` or `W` — hold for higher jump |
+| Restart current stage | `R` |
+| Quit to title | `Q` |
 | Pause | `Esc` |
 | Mute / unmute | `M` |
 | Continue dialog | `Space` / `Enter` / click |

@@ -118,6 +118,17 @@ export abstract class BaseLevelScene extends Phaser.Scene {
       const m = AudioBus.toggleMute();
       this.hud.flashTitle(m ? `${cfg.title}  (muted)` : cfg.title);
     });
+    this.input.keyboard!.on("keydown-R", () => {
+      AudioBus.stopBackground();
+      this.scene.restart({
+        powers: this.initialPowers(),
+        hearts: this.initialHearts(),
+      });
+    });
+    this.input.keyboard!.on("keydown-Q", () => {
+      AudioBus.stopBackground();
+      this.scene.start("Title");
+    });
 
     AudioBus.startBackground(cfg.bgMusic);
 

@@ -10,6 +10,8 @@ interface PlayerInputs {
   altLeft: Phaser.Input.Keyboard.Key;
   altRight: Phaser.Input.Keyboard.Key;
   altJump: Phaser.Input.Keyboard.Key;
+  sprint: Phaser.Input.Keyboard.Key;
+  altSprint: Phaser.Input.Keyboard.Key;
 }
 
 export class Adventurer extends Phaser.Physics.Arcade.Sprite {
@@ -38,6 +40,8 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
       altLeft: kb.addKey(Phaser.Input.Keyboard.KeyCodes.A),
       altRight: kb.addKey(Phaser.Input.Keyboard.KeyCodes.D),
       altJump: kb.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+      sprint: kb.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
+      altSprint: kb.addKey(Phaser.Input.Keyboard.KeyCodes.X),
     };
   }
 
@@ -75,12 +79,14 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
     const left = this.inputs.left.isDown || this.inputs.altLeft.isDown;
     const right = this.inputs.right.isDown || this.inputs.altRight.isDown;
     const jumpDown = this.inputs.jump.isDown || this.inputs.altJump.isDown;
+    const sprinting = this.inputs.sprint.isDown || this.inputs.altSprint.isDown;
 
+    const speed = sprinting ? PHYSICS.playerSpeed * 1.6 : PHYSICS.playerSpeed;
     if (left) {
-      this.setVelocityX(-PHYSICS.playerSpeed);
+      this.setVelocityX(-speed);
       this.setFlipX(true);
     } else if (right) {
-      this.setVelocityX(PHYSICS.playerSpeed);
+      this.setVelocityX(speed);
       this.setFlipX(false);
     } else {
       this.setVelocityX(0);
@@ -91,10 +97,17 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
       this.jumpsRemaining = this.powers.has("fork") ? 2 : 1;
     }
 
+    // Variable jump height + sprint boost: holding jump rises higher; sprinting
+    // gives an extra ~15% pop so you can reach platforms otherwise out of range.
     if (jumpDown && !this.jumpHeld && this.jumpsRemaining > 0) {
-      const v = this.jumpsRemaining === 2 ? PHYSICS.jumpVelocity : PHYSICS.doubleJumpVelocity;
+      const baseV = this.jumpsRemaining === 2 ? PHYSICS.jumpVelocity : PHYSICS.doubleJumpVelocity;
+      const v = sprinting ? baseV * 1.15 : baseV;
       this.setVelocityY(v);
       this.jumpsRemaining -= 1;
+    }
+    // Cut the jump short if the player releases space early (variable jump).
+    if (!jumpDown && (this.body?.velocity.y ?? 0) < -180) {
+      this.setVelocityY((this.body?.velocity.y ?? 0) * 0.5);
     }
     this.jumpHeld = jumpDown;
   }

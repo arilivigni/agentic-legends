@@ -48,6 +48,36 @@ export class Hud {
       fontSize: "22px",
       color: "#e6edf3",
     }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(50);
+
+    const controlsLines = [
+      "Move  ←/→ · A/D",
+      "Run   Shift",
+      "Jump  Space · W",
+      "Pause Esc · Mute M",
+      "Restart R · Quit Q",
+    ];
+    const panelW = 220;
+    const panelH = controlsLines.length * 18 + 28;
+    const panelX = scene.scale.width - panelW - 16;
+    const panelY = 16;
+    const panel = scene.add.rectangle(panelX, panelY, panelW, panelH, 0x0d1117, 0.65)
+      .setOrigin(0, 0)
+      .setStrokeStyle(1, 0xf78166, 0.7)
+      .setScrollFactor(0)
+      .setDepth(50);
+    const header = scene.add.text(panelX + 10, panelY + 6, "CONTROLS", {
+      fontFamily: "system-ui, sans-serif",
+      fontSize: "12px",
+      color: "#f78166",
+      fontStyle: "bold",
+    }).setScrollFactor(0).setDepth(51);
+    const body = scene.add.text(panelX + 10, panelY + 24, controlsLines.join("\n"), {
+      fontFamily: "ui-monospace, Menlo, Consolas, monospace",
+      fontSize: "13px",
+      color: "#c9d1d9",
+      lineSpacing: 4,
+    }).setScrollFactor(0).setDepth(51);
+    void panel; void header; void body;
   }
 
   setHearts(n: number) {

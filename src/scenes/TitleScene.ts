@@ -48,9 +48,9 @@ export class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5);
     this.tweens.add({ targets: prompt, alpha: 0.3, duration: 800, yoyo: true, repeat: -1 });
 
-    this.add.text(w / 2, h - 60, "Arrow keys / WASD to move • Space to jump • Esc to pause • M to mute", {
+    this.add.text(w / 2, h - 60, "Arrows / WASD move · Shift run · Space jump · R restart · Q quit · Esc pause · M mute", {
       fontFamily: "system-ui, sans-serif",
-      fontSize: "16px",
+      fontSize: "14px",
       color: "#8b949e",
     }).setOrigin(0.5);
 

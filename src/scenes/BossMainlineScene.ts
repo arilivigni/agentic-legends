@@ -100,6 +100,14 @@ export class BossMainlineScene extends Phaser.Scene {
 
     this.input.keyboard!.on("keydown-ESC", () => this.scene.pause());
     this.input.keyboard!.on("keydown-M", () => AudioBus.toggleMute());
+    this.input.keyboard!.on("keydown-R", () => {
+      AudioBus.stopBackground();
+      this.scene.restart({ powers: data.powers, hearts: data.hearts });
+    });
+    this.input.keyboard!.on("keydown-Q", () => {
+      AudioBus.stopBackground();
+      this.scene.start("Title");
+    });
 
     AudioBus.startBackground([220, 233, 277, 330, 277, 233]);
     this.startPhase();
