@@ -1,6 +1,8 @@
-# LinkedIn post — Agentic Legends v0.1.0 / v0.1.1
+# Socials post — Agentic Legends v0.1.0 / v0.1.1
 
-A ready-to-paste LinkedIn announcement for the **Agentic Legends** beta.
+A ready-to-paste social-media announcement for the **Agentic Legends** beta —
+works on LinkedIn, X/Twitter (use the short alternate), Mastodon, Bluesky,
+or any platform that takes plain text + emoji.
 Feel free to trim, tweak voice, or swap the screenshot before posting.
 
 ---
@@ -53,6 +55,6 @@ Pair-programmed end-to-end with GitHub Copilot CLI.
 
 ## Posting tips
 
-- Add a 1280×720 screenshot of the title screen or a level-end reward modal — LinkedIn posts with media reach noticeably further.
+- Add a 1280×720 screenshot of the title screen or a level-end reward modal — most platforms surface posts with media noticeably more.
 - Tag relevant GitHub / Microsoft folks if appropriate.
 - The first 3 lines are what shows before "see more" — keep the hook there.
