@@ -55,7 +55,7 @@ export class Hud {
       "Jump  Space · W",
       "Pause Esc · Mute M",
       "Restart R · Quit Q",
-      "(?) Hidden key for higher leaps",
+      "Tip: double-tap Space to leap higher",
     ];
     const panelW = 220;
     const panelH = controlsLines.length * 18 + 28;

@@ -257,7 +257,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
       bubbles: "Bubbles of Clarity acquired",
       goggles: "Goggles of Insight acquired",
     };
-    await showRewardModal(this, cfg.rewardKey, captions[cfg.rewardPower]);
+    await showRewardModal(this, cfg.bgKey, captions[cfg.rewardPower]);
 
     const q = QUIZZES[cfg.key];
     if (q) {
