@@ -10,7 +10,7 @@ export const QUIZZES: Record<string, QuizQuestion> = {
   LevelMona: {
     prompt:
       "GH-600 — Developing in Agentic AI Systems\n\nWhat is the correct number of Domains on the GH-600 certification exam?",
-    options: ["4", "6", "8"],
+    options: ["4", "6", "8", "10"],
     correctIndex: 1,
     successMessage: "Correct! GH-600 includes 6 domains.",
     failureMessage: "Not quite — the GH-600 exam is organized into 6 domains.",
