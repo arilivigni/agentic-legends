@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { fitWithin } from "../util/fit";
 
 /**
  * Full-screen modal that displays a reward poster (full, uncropped).
@@ -12,12 +13,9 @@ export function showRewardModal(scene: Phaser.Scene, textureKey: string, caption
     const dim = scene.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.9)
       .setScrollFactor(0).setDepth(300);
 
-    // Reserve a slim strip at the bottom for caption + prompt; the poster fills
-    // the rest. We never enlarge — at most native size — so any text baked into
-    // the image stays crisp and is guaranteed to be fully visible.
     const captionY = h - 56;
     const promptY = h - 24;
-    const reservedBottom = h - (captionY - 30); // ~86 px
+    const reservedBottom = h - (captionY - 30);
     const padX = 32;
     const padTop = 32;
     const maxW = w - padX * 2;
@@ -26,9 +24,8 @@ export function showRewardModal(scene: Phaser.Scene, textureKey: string, caption
     let img: Phaser.GameObjects.Image | null = null;
     if (scene.textures.exists(textureKey)) {
       img = scene.add.image(0, 0, textureKey).setScrollFactor(0).setDepth(301);
-      const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+      const { scale, height: drawnH } = fitWithin(img.width, img.height, maxW, maxH);
       img.setScale(scale);
-      const drawnH = img.height * scale;
       img.setPosition(w / 2, padTop + drawnH / 2);
     }
 
