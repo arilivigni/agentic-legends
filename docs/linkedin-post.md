@@ -26,9 +26,9 @@ At the end of every level you face a real **GH-600 knowledge check** before you 
 🤝 **Built with GitHub Copilot CLI** as the pair-programmer end-to-end — from the first scene scaffold to the release workflow.
 
 🚀 **Try it / read the code:**
-👉 Play it: https://arilivigni.github.io/agentic-legends/
-👉 Source: https://github.com/arilivigni/agentic-legends
-👉 Releases: https://github.com/arilivigni/agentic-legends/releases/tag/v0.1.1
+- 👉 Play it: https://arilivigni.github.io/agentic-legends/
+- 👉 Source: https://github.com/arilivigni/agentic-legends
+- 👉 Releases: https://github.com/arilivigni/agentic-legends/releases/tag/v0.1.1
 
 Codia awaits. Save the Mainline. 🌳
 
