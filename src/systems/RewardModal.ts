@@ -9,31 +9,40 @@ export function showRewardModal(scene: Phaser.Scene, textureKey: string, caption
     const w = scene.scale.width;
     const h = scene.scale.height;
 
-    const dim = scene.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.85)
+    const dim = scene.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.9)
       .setScrollFactor(0).setDepth(300);
+
+    // Reserve a slim strip at the bottom for caption + prompt; the poster fills
+    // the rest. We never enlarge — at most native size — so any text baked into
+    // the image stays crisp and is guaranteed to be fully visible.
+    const captionY = h - 56;
+    const promptY = h - 24;
+    const reservedBottom = h - (captionY - 30); // ~86 px
+    const padX = 32;
+    const padTop = 32;
+    const maxW = w - padX * 2;
+    const maxH = h - padTop - reservedBottom;
 
     let img: Phaser.GameObjects.Image | null = null;
     if (scene.textures.exists(textureKey)) {
-      img = scene.add.image(w / 2, h / 2 - 30, textureKey).setScrollFactor(0).setDepth(301);
-      // Fit fully within (w - 80) × (h - 180), preserve aspect ratio so any
-      // text on the poster stays readable and nothing is cropped.
-      const maxW = w - 80;
-      const maxH = h - 200;
+      img = scene.add.image(0, 0, textureKey).setScrollFactor(0).setDepth(301);
       const scale = Math.min(maxW / img.width, maxH / img.height, 1);
       img.setScale(scale);
+      const drawnH = img.height * scale;
+      img.setPosition(w / 2, padTop + drawnH / 2);
     }
 
-    const captionText = scene.add.text(w / 2, h - 90, caption, {
+    const captionText = scene.add.text(w / 2, captionY, caption, {
       fontFamily: "Georgia, serif",
-      fontSize: "22px",
+      fontSize: "20px",
       color: "#f78166",
       align: "center",
       wordWrap: { width: w - 120 },
     }).setOrigin(0.5).setScrollFactor(0).setDepth(301);
 
-    const prompt = scene.add.text(w / 2, h - 50, "▶ Press Space to continue", {
+    const prompt = scene.add.text(w / 2, promptY, "▶ Press Space to continue", {
       fontFamily: "system-ui, sans-serif",
-      fontSize: "16px",
+      fontSize: "14px",
       color: "#c9d1d9",
     }).setOrigin(0.5).setScrollFactor(0).setDepth(301);
     scene.tweens.add({ targets: prompt, alpha: 0.4, duration: 700, yoyo: true, repeat: -1 });

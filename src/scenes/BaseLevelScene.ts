@@ -117,7 +117,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
 
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
 
-    this.hud = new Hud(this, cfg.title);
+    this.hud = new Hud(this, cfg.title, { showLeapTip: cfg.key === "LevelCopilot" });
     this.hud.setHearts(this.player.hearts);
     this.hud.setPowers(this.player.powers);
     this.dialog = new DialogBox(this);

@@ -41,6 +41,12 @@ export class TitleScene extends Phaser.Scene {
       wordWrap: { width: w - 200 },
     }).setOrigin(0.5);
 
+    this.add.text(w - 16, h - 16, `v${__APP_VERSION__} · beta`, {
+      fontFamily: "ui-monospace, Menlo, monospace",
+      fontSize: "12px",
+      color: "#8b949e",
+    }).setOrigin(1, 1);
+
     const prompt = this.add.text(w / 2, h - 120, "Press SPACE or click to begin", {
       fontFamily: "system-ui, sans-serif",
       fontSize: "22px",

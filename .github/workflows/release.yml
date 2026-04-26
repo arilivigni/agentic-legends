@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build production bundle
+        run: pnpm run build
+
+      - name: Package web build
+        run: |
+          cd dist
+          zip -r "../agentic-legends-${GITHUB_REF_NAME}.zip" .
+
+      - name: Determine prerelease flag
+        id: prerelease
+        run: |
+          ref="${GITHUB_REF_NAME}"
+          # Pre-1.0 and any tag with a hyphen suffix (-beta, -rc.1, …) are prereleases.
+          if [[ "$ref" == v0.* || "$ref" == *-* ]]; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Agentic Legends ${{ github.ref_name }}
+          generate_release_notes: true
+          prerelease: ${{ steps.prerelease.outputs.value == 'true' }}
+          body: |
+            **Agentic Legends ${{ github.ref_name }}**
+
+            Play in the browser: https://arilivigni.github.io/agentic-legends/
+
+            See [`CHANGELOG.md`](./CHANGELOG.md) for the full list of changes.
+            Versions in the `0.x` series are **beta**; `1.0.0` will mark GA.
+          files: |
+            agentic-legends-${{ github.ref_name }}.zip

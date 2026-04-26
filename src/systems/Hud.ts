@@ -18,7 +18,7 @@ export class Hud {
   private giftIcons: Map<Power, Phaser.GameObjects.Container> = new Map();
   private titleText!: Phaser.GameObjects.Text;
 
-  constructor(scene: Phaser.Scene, levelTitle: string) {
+  constructor(scene: Phaser.Scene, levelTitle: string, options: { showLeapTip?: boolean } = {}) {
     this.scene = scene;
 
     for (let i = 0; i < 3; i++) {
@@ -55,8 +55,10 @@ export class Hud {
       "Jump  Space · W",
       "Pause Esc · Mute M",
       "Restart R · Quit Q",
-      "Tip: double-tap Space to leap higher",
     ];
+    if (options.showLeapTip) {
+      controlsLines.push("Tip: double-tap Space to leap higher");
+    }
     const panelW = 220;
     const panelH = controlsLines.length * 18 + 28;
     const panelX = scene.scale.width - panelW - 16;
