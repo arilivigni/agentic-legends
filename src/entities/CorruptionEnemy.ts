@@ -3,7 +3,7 @@ import Phaser from "phaser";
 export class CorruptionEnemy extends Phaser.Physics.Arcade.Sprite {
   private patrolMin: number;
   private patrolMax: number;
-  private speed = 70;
+  private speed = 55;
 
   constructor(scene: Phaser.Scene, x: number, y: number, range: number) {
     const tex = ensureTexture(scene);

@@ -16,19 +16,27 @@ export class LevelCopilotScene extends BaseLevelScene {
       bottomColor: 0x6cd0ff,
       worldWidth: 4400,
       platforms: [
+        // Three solid floor segments with gaps in between
         { x: 700, y: ground, w: 1400 },
         { x: 2400, y: ground, w: 600 },
         { x: 4000, y: ground, w: 800 },
-        { x: 1600, y: ground - 200, w: 200 },
-        { x: 2100, y: ground - 280, w: 180 },
-        { x: 3300, y: ground - 220, w: 200 },
-        { x: 3700, y: ground - 300, w: 180 },
+        // Bridge platforms over gap 1 (1400 → 2100)
+        { x: 1500, y: ground - 90, w: 130 },
+        { x: 1750, y: ground - 160, w: 130 },
+        { x: 2000, y: ground - 90, w: 130 },
+        // Bridge platforms over gap 2 (2700 → 3600)
+        { x: 2850, y: ground - 90, w: 130 },
+        { x: 3100, y: ground - 170, w: 130 },
+        { x: 3350, y: ground - 170, w: 130 },
+        { x: 3550, y: ground - 90, w: 130 },
+        // Higher reward platforms for the daring
+        { x: 1600, y: ground - 260, w: 180 },
+        { x: 3700, y: ground - 280, w: 180 },
       ],
       hiddenPlatforms: [
-        { x: 1500, y: ground - 80, w: 160 },
-        { x: 1850, y: ground - 140, w: 160 },
-        { x: 2750, y: ground - 100, w: 200 },
-        { x: 3050, y: ground - 200, w: 180 },
+        // Replay shortcuts — only visible after collecting Goggles
+        { x: 1850, y: ground - 240, w: 160 },
+        { x: 3050, y: ground - 280, w: 160 },
       ],
       enemies: [
         { x: 900, y: ground - 60, range: 220 },

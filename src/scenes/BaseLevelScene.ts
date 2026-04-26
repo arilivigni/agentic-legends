@@ -5,6 +5,9 @@ import { Mentor } from "../entities/Mentor";
 import { Hud } from "../systems/Hud";
 import { DialogBox } from "../systems/DialogBox";
 import { AudioBus } from "../systems/AudioBus";
+import { Quiz } from "../systems/Quiz";
+import { showRewardModal } from "../systems/RewardModal";
+import { QUIZZES } from "../data/quizzes";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config";
 
 export interface PlatformDef {
@@ -61,6 +64,14 @@ export abstract class BaseLevelScene extends Phaser.Scene {
   }
 
   create() {
+    // Reset per-run state — class field initializers only fire once per scene
+    // instance, but Phaser reuses the same instance on `scene.restart()`.
+    this.mentorTriggered = false;
+    this.goalReached = false;
+    this.isPaused = false;
+    this.pauseOverlay = undefined;
+    this.reward = undefined;
+
     const cfg = this.config();
     this.physics.world.setBounds(0, 0, cfg.worldWidth, GAME_HEIGHT);
     this.cameras.main.setBounds(0, 0, cfg.worldWidth, GAME_HEIGHT);
@@ -233,8 +244,27 @@ export abstract class BaseLevelScene extends Phaser.Scene {
       this.player.grantPower(cfg.rewardPower);
       this.hud.setPowers(this.player.powers);
       this.cameras.main.flash(300, 255, 220, 100);
-      this.time.delayedCall(900, () => this.advanceLevel());
+      this.physics.pause();
+      this.time.delayedCall(450, () => this.runEndOfLevel());
     });
+  }
+
+  private async runEndOfLevel() {
+    const cfg = this.config();
+    AudioBus.stopBackground();
+    const captions: Record<Power, string> = {
+      fork: "Fork of Curiosity acquired",
+      bubbles: "Bubbles of Clarity acquired",
+      goggles: "Goggles of Insight acquired",
+    };
+    await showRewardModal(this, cfg.rewardKey, captions[cfg.rewardPower]);
+
+    const q = QUIZZES[cfg.key];
+    if (q) {
+      const quiz = new Quiz(this);
+      await quiz.show(q);
+    }
+    this.advanceLevel();
   }
 
   protected advanceLevel() {

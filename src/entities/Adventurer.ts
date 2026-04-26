@@ -12,6 +12,7 @@ interface PlayerInputs {
   altJump: Phaser.Input.Keyboard.Key;
   sprint: Phaser.Input.Keyboard.Key;
   altSprint: Phaser.Input.Keyboard.Key;
+  superJump: Phaser.Input.Keyboard.Key;
 }
 
 export class Adventurer extends Phaser.Physics.Arcade.Sprite {
@@ -42,6 +43,7 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
       altJump: kb.addKey(Phaser.Input.Keyboard.KeyCodes.W),
       sprint: kb.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
       altSprint: kb.addKey(Phaser.Input.Keyboard.KeyCodes.X),
+      superJump: kb.addKey(Phaser.Input.Keyboard.KeyCodes.J),
     };
   }
 
@@ -75,11 +77,14 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
     return true;
   }
 
+  private superJumpHeld = false;
+
   override update() {
     const left = this.inputs.left.isDown || this.inputs.altLeft.isDown;
     const right = this.inputs.right.isDown || this.inputs.altRight.isDown;
     const jumpDown = this.inputs.jump.isDown || this.inputs.altJump.isDown;
     const sprinting = this.inputs.sprint.isDown || this.inputs.altSprint.isDown;
+    const superJump = this.inputs.superJump.isDown;
 
     const speed = sprinting ? PHYSICS.playerSpeed * 1.6 : PHYSICS.playerSpeed;
     if (left) {
@@ -96,6 +101,19 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
     if (onFloor) {
       this.jumpsRemaining = this.powers.has("fork") ? 2 : 1;
     }
+
+    // Hidden super-jump (J): a much taller leap, available any time you have a
+    // jump charge — discoverable via the "Hidden key…" hint in the HUD.
+    if (superJump && !this.superJumpHeld && this.jumpsRemaining > 0) {
+      this.setVelocityY(PHYSICS.jumpVelocity * 1.55);
+      this.jumpsRemaining -= 1;
+      this.scene.tweens.add({
+        targets: this,
+        scale: { from: this.scale * 1.1, to: this.scale },
+        duration: 220,
+      });
+    }
+    this.superJumpHeld = superJump;
 
     // Variable jump height + sprint boost: holding jump rises higher; sprinting
     // gives an extra ~15% pop so you can reach platforms otherwise out of range.
