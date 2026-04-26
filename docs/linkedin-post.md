@@ -5,7 +5,7 @@ Feel free to trim, tweak voice, or swap the screenshot before posting.
 
 ---
 
-🎮 **Shipped: Agentic Legends (beta) — a browser platformer that teaches the GH-600 *Developing in Agentic AI Systems* exam objectives.**
+🚀🎮 **Shipped: Agentic Legends (beta) — a browser platformer that teaches the GH-600 *Developing in Agentic AI Systems* exam objectives.**
 
 You play a developer in **Codia**, a magical realm whose Sacred Mainline has fractured into unstable branches. Three mythical mentors hand you the gifts you need to merge it back together:
 
@@ -25,27 +25,29 @@ At the end of every level you face a real **GH-600 knowledge check** before you 
 
 🤝 **Built with GitHub Copilot CLI** as the pair-programmer end-to-end — from the first scene scaffold to the release workflow.
 
-▶️ Play it: https://arilivigni.github.io/agentic-legends/
-📦 Source + releases: https://github.com/arilivigni/agentic-legends
-📜 v0.1.1 notes: https://github.com/arilivigni/agentic-legends/releases/tag/v0.1.1
+🚀 **Try it / read the code:**
+👉 Play it: https://arilivigni.github.io/agentic-legends/
+👉 Source: https://github.com/arilivigni/agentic-legends
+👉 Releases: https://github.com/arilivigni/agentic-legends/releases/tag/v0.1.1
 
 Codia awaits. Save the Mainline. 🌳
 
-\#GitHub #Copilot #GameDev #Phaser #TypeScript #AgenticAI #GH600 #DevRel #OpenSource
+\#GitHub #GitHubLearn #GitHubSkills #Copilot #GameDev #Phaser #TypeScript #AgenticAI #GH600 #DevRel #OpenSource
 
 ---
 
 ## Shorter alternate (≈ 600 chars, for follow-up posts)
 
-Just shipped **Agentic Legends** — a browser platformer where you restore a glitched-out git world by collecting gifts from Mona, Ducky, and Copilot, then answering real GH-600 *Developing in Agentic AI Systems* questions at the end of each level.
+🚀 Just shipped **Agentic Legends** — a browser platformer where you restore a glitched-out git world by collecting gifts from Mona, Ducky, and Copilot, then answering real GH-600 *Developing in Agentic AI Systems* questions at the end of each level.
 
 Built with Phaser 3 + TypeScript + Vite, tested with Vitest, released through a tag-driven GitHub Actions pipeline that pulls notes from CHANGELOG.md.
 
 Pair-programmed end-to-end with GitHub Copilot CLI.
 
-Play: https://arilivigni.github.io/agentic-legends/
+👉 Play: https://arilivigni.github.io/agentic-legends/
+👉 Source: https://github.com/arilivigni/agentic-legends
 
-\#GitHub #Copilot #GameDev #AgenticAI
+\#GitHub #GitHubLearn #GitHubSkills #Copilot #GameDev #AgenticAI
 
 ---
 
