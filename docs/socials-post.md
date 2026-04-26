@@ -1,4 +1,4 @@
-# Socials post — Agentic Legends v0.1.0 / v0.1.1
+# Socials post — Agentic Legends
 
 A ready-to-paste social-media announcement for the **Agentic Legends** beta —
 works on LinkedIn, X/Twitter (use the short alternate), Mastodon, Bluesky,
