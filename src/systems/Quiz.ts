@@ -48,11 +48,14 @@ export class Quiz {
         wordWrap: { width: Math.min(w - 140, 800) },
       }).setOrigin(0.5).setScrollFactor(0).setDepth(302);
 
-      const continueLabel = this.scene.add.text(w / 2, h / 2 + 195, "▶ Press Space to continue", {
+      const continueLabel = this.scene.add.text(w / 2, h / 2 + 195, "▶ Tap or press Space to continue", {
         fontFamily: "system-ui, sans-serif",
         fontSize: "18px",
         color: "#3fb950",
-      }).setOrigin(0.5).setScrollFactor(0).setDepth(302).setVisible(false);
+        backgroundColor: "#0d1117",
+        padding: { left: 12, right: 12, top: 6, bottom: 6 },
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(302).setVisible(false).setInteractive({ useHandCursor: true });
+      continueLabel.on("pointerdown", () => continueHandler());
 
       const optionTexts: Phaser.GameObjects.Text[] = [];
       const optionBgs: Phaser.GameObjects.Rectangle[] = [];

@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { PHYSICS } from "../config";
+import { getTouchInput, type TouchInputState } from "../systems/TouchControls";
 
 export type Power = "fork" | "bubbles" | "goggles";
 
@@ -19,6 +20,7 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
   hearts = 3;
   invulnerableUntil = 0;
   private inputs!: PlayerInputs;
+  private touch: TouchInputState;
   private jumpsRemaining = 1;
   private jumpHeld = false;
 
@@ -43,6 +45,7 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
       sprint: kb.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
       altSprint: kb.addKey(Phaser.Input.Keyboard.KeyCodes.X),
     };
+    this.touch = getTouchInput(scene);
   }
 
   setTextureForPower(scene: Phaser.Scene) {
@@ -78,9 +81,9 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
   private lastJumpTapAt = -1000;
 
   override update() {
-    const left = this.inputs.left.isDown || this.inputs.altLeft.isDown;
-    const right = this.inputs.right.isDown || this.inputs.altRight.isDown;
-    const jumpDown = this.inputs.jump.isDown || this.inputs.altJump.isDown;
+    const left = this.inputs.left.isDown || this.inputs.altLeft.isDown || this.touch.left;
+    const right = this.inputs.right.isDown || this.inputs.altRight.isDown || this.touch.right;
+    const jumpDown = this.inputs.jump.isDown || this.inputs.altJump.isDown || this.touch.jump;
     const sprinting = this.inputs.sprint.isDown || this.inputs.altSprint.isDown;
 
     const speed = sprinting ? PHYSICS.playerSpeed * 1.6 : PHYSICS.playerSpeed;

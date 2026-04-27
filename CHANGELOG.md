@@ -7,6 +7,24 @@ This project follows [Semantic Versioning](https://semver.org/) and
 Versions in the `0.x` range are **beta** — APIs, levels, and balance may
 change at any time. The first GA release will be `1.0.0`.
 
+## [0.1.4] - Beta
+
+### Added
+- **Mobile / touch support.** When the game detects a touch device, an
+  on-screen control overlay appears in the level scenes: `◀` `▶` on the
+  bottom-left for movement and `⤒` on the bottom-right for jump.
+  Multi-touch is enabled so the player can hold a direction and tap
+  jump simultaneously. Driven by a shared `TouchInputState` on the
+  Phaser registry that the `Adventurer` ORs into the keyboard inputs.
+- Quiz "continue" prompt is now tappable on mobile (label reads
+  `▶ Tap or press Space to continue`).
+
+### Changed
+- `index.html` viewport CSS hardened for phones: `touch-action: none`,
+  `overscroll-behavior: none`, disabled tap highlight / text selection,
+  and switched height to `100dvh` so the canvas fits below the URL bar
+  on iOS Safari and Chrome Android.
+
 ## [0.1.3] - Beta
 
 ### Fixed

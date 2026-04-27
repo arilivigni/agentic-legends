@@ -4,6 +4,7 @@ import { Adventurer, type Power } from "../entities/Adventurer";
 import { CorruptionEnemy } from "../entities/CorruptionEnemy";
 import { Hud } from "../systems/Hud";
 import { AudioBus } from "../systems/AudioBus";
+import { TouchControls } from "../systems/TouchControls";
 
 /**
  * Final stand on the Mainline. The Copilot Orb hovers at the end of the
@@ -108,6 +109,7 @@ export class BossMainlineScene extends Phaser.Scene {
     this.hud = new Hud(this, "Mainline Corruption — final stand");
     this.hud.setHearts(this.player.hearts);
     this.hud.setPowers(this.player.powers);
+    new TouchControls(this).attach();
 
     if (this.wrongAnswers > 0) {
       this.time.delayedCall(400, () => {

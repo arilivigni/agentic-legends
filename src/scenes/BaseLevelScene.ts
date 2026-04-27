@@ -9,6 +9,7 @@ import { Quiz } from "../systems/Quiz";
 import { showRewardModal } from "../systems/RewardModal";
 import { QUIZZES } from "../data/quizzes";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config";
+import { TouchControls } from "../systems/TouchControls";
 
 export interface PlatformDef {
   x: number;
@@ -137,6 +138,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
     this.hud = new Hud(this, cfg.title, { showLeapTip: cfg.key === "LevelCopilot" });
     this.hud.setHearts(this.player.hearts);
     this.hud.setPowers(this.player.powers);
+    new TouchControls(this).attach();
     this.dialog = new DialogBox(this);
 
     this.escKey = this.input.keyboard!.addKey("ESC");
