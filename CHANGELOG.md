@@ -20,6 +20,9 @@ change at any time. The first GA release will be `1.0.0`.
 - The in-world mentor sprite for Ducky and Copilot crops the title band
   ("ENLIGHTENMENT" / "SPELLS") off the top of the portrait so no
   text is visible in-game.
+- **Final level reworked**: the boss fight is replaced by a single
+  hovering **Copilot Orb** at the end of the arena. Touch it to win.
+  The orb uses the supplied Copilot artwork (`copilot-orb.png`).
 
 ### Added
 - Animated **lava** in the floor gaps on Level 3, with shimmering glow
@@ -29,6 +32,11 @@ change at any time. The first GA release will be `1.0.0`.
   attempt, so the correct option's letter (A/B/C/D) is randomized per
   play. Backed by `src/util/shuffle.ts` (pure / RNG-seedable) with 6
   new Vitest cases (24 tests total).
+- **Wrong-answer penalty** — every wrong guess on a knowledge check
+  spawns one extra corruption bug on the next level (and on the
+  Mainline). A yellow HUD banner (`⚠ N extra bugs from missed
+  knowledge checks!`) appears so the player understands the spike.
+  Wrong-answer counts are propagated through `scene.start` data.
 
 ## [0.1.1] - Beta
 

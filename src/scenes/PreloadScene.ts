@@ -1,14 +1,16 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config";
 
-const ASSETS = import.meta.glob("../assets/generated/*.webp", {
+const ASSETS = import.meta.glob("../assets/generated/*.{webp,png}", {
   eager: true,
   query: "?url",
   import: "default",
 }) as Record<string, string>;
 
 function urlFor(slug: string): string | undefined {
-  const match = Object.entries(ASSETS).find(([k]) => k.endsWith(`/${slug}.webp`));
+  const match = Object.entries(ASSETS).find(
+    ([k]) => k.endsWith(`/${slug}.webp`) || k.endsWith(`/${slug}.png`),
+  );
   return match?.[1];
 }
 
@@ -49,6 +51,7 @@ export class PreloadScene extends Phaser.Scene {
       ["goggles-reward", "goggles-reward"],
       ["next-challenge-hero", "next-challenge-hero"],
       ["next-challenge-item", "next-challenge-item"],
+      ["copilot-orb", "copilot-orb"],
     ];
     for (const [key, slug] of keys) {
       const url = urlFor(slug);

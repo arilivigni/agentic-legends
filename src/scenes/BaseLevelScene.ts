@@ -66,6 +66,10 @@ export abstract class BaseLevelScene extends Phaser.Scene {
   protected initialHearts(): number {
     return (this.scene.settings.data as { hearts?: number })?.hearts ?? 3;
   }
+  protected initialWrongAnswers(): number {
+    return (this.scene.settings.data as { wrongAnswers?: number })?.wrongAnswers ?? 0;
+  }
+  protected wrongAnswers = 0;
 
   create() {
     // Reset per-run state — class field initializers only fire once per scene
@@ -109,6 +113,9 @@ export abstract class BaseLevelScene extends Phaser.Scene {
       const enemy = new CorruptionEnemy(this, e.x, e.y, e.range);
       this.enemies.add(enemy);
     }
+    // Penalty bugs from previously-missed knowledge checks.
+    this.wrongAnswers = this.initialWrongAnswers();
+    this.spawnPenaltyBugs(cfg, this.wrongAnswers);
     this.physics.add.collider(this.enemies, this.platforms);
 
     const playerTex = this.pickPlayerTexture(cfg);
@@ -317,7 +324,8 @@ export abstract class BaseLevelScene extends Phaser.Scene {
     const q = QUIZZES[cfg.key];
     if (q) {
       const quiz = new Quiz(this);
-      await quiz.show(q);
+      const { wrongCount } = await quiz.show(q);
+      this.wrongAnswers += wrongCount;
     }
     this.advanceLevel();
   }
@@ -328,6 +336,29 @@ export abstract class BaseLevelScene extends Phaser.Scene {
     this.scene.start(cfg.next, {
       powers: Array.from(this.player.powers),
       hearts: this.player.hearts,
+      wrongAnswers: this.wrongAnswers,
+    });
+  }
+
+  /**
+   * Spawn N extra "penalty" bugs scattered around the level for each
+   * knowledge-check answer the player has missed so far. Surfaces a HUD
+   * banner so the player understands why the level got harder.
+   */
+  protected spawnPenaltyBugs(cfg: LevelConfig, count: number) {
+    if (count <= 0) return;
+    const ground = GAME_HEIGHT - 40;
+    const margin = 200;
+    const span = Math.max(400, cfg.worldWidth - margin * 2);
+    for (let i = 0; i < count; i++) {
+      const x = margin + ((i + 1) * span) / (count + 1);
+      const range = 160 + (i % 3) * 60;
+      const enemy = new CorruptionEnemy(this, x, ground - 60, range);
+      this.enemies.add(enemy);
+    }
+    this.time.delayedCall(400, () => {
+      const noun = count === 1 ? "bug" : "bugs";
+      this.hud.flashWarning(`⚠ ${count} extra ${noun} from missed knowledge checks!`);
     });
   }
 

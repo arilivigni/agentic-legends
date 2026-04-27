@@ -94,4 +94,24 @@ export class Hud {
   flashTitle(text: string) {
     this.titleText.setText(text);
   }
+
+  flashWarning(text: string) {
+    const w = this.scene.scale.width;
+    const banner = this.scene.add.text(w / 2, 96, text, {
+      fontFamily: "system-ui, sans-serif",
+      fontSize: "20px",
+      color: "#ffd166",
+      backgroundColor: "#3a0d24",
+      padding: { left: 14, right: 14, top: 8, bottom: 8 },
+      align: "center",
+    }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(60).setAlpha(0);
+    this.scene.tweens.add({
+      targets: banner,
+      alpha: { from: 0, to: 1 },
+      duration: 250,
+      yoyo: true,
+      hold: 2400,
+      onComplete: () => banner.destroy(),
+    });
+  }
 }

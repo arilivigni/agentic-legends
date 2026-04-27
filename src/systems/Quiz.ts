@@ -14,9 +14,10 @@ export class Quiz {
     this.scene = scene;
   }
 
-  show(question: QuizQuestion): Promise<void> {
+  show(question: QuizQuestion): Promise<{ wrongCount: number }> {
     const q = shuffleQuestion(question);
     return new Promise((resolve) => {
+      let wrongCount = 0;
       const w = this.scene.scale.width;
       const h = this.scene.scale.height;
 
@@ -86,7 +87,7 @@ export class Quiz {
       const continueHandler = () => {
         if (!answered) return;
         cleanup();
-        resolve();
+        resolve({ wrongCount });
       };
       this.scene.input.keyboard?.on("keydown-SPACE", continueHandler);
       this.scene.input.keyboard?.on("keydown-ENTER", continueHandler);
@@ -100,6 +101,7 @@ export class Quiz {
           continueLabel.setVisible(true);
           this.scene.tweens.add({ targets: continueLabel, alpha: 0.4, duration: 700, yoyo: true, repeat: -1 });
         } else {
+          wrongCount += 1;
           optionBgs[i].setFillStyle(0x6e1c2e);
           feedback.setText(q.failureMessage + "\nTry again.").setColor("#ff6b81");
           // Re-enable after a beat

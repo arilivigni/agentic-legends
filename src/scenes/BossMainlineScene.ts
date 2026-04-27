@@ -1,42 +1,30 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config";
 import { Adventurer, type Power } from "../entities/Adventurer";
+import { CorruptionEnemy } from "../entities/CorruptionEnemy";
 import { Hud } from "../systems/Hud";
 import { AudioBus } from "../systems/AudioBus";
 
 /**
- * Multi-phase boss. Three phases — each requires a different power to expose
- * the corruption core, then any contact below the core deals damage.
- *  Phase 1 (fork)    — boss splits into two clones, one is real; double-jump
- *                      to reach a high platform that lets you land on the real one.
- *  Phase 2 (bubbles) — boss surrounds itself with fog walls; presence of the
- *                      bubbles dissolves them, exposing the core.
- *  Phase 3 (goggles) — boss hides behind invisible barriers; goggles reveal
- *                      the safe lane to attack.
+ * Final stand on the Mainline. The Copilot Orb hovers at the end of the
+ * arena — touching it restores the sacred Mainline and triggers victory.
+ * Roaming corruption bugs (plus penalty bugs from missed knowledge checks)
+ * still try to stop you on the way.
  */
 export class BossMainlineScene extends Phaser.Scene {
   private player!: Adventurer;
   private hud!: Hud;
-  private boss!: Phaser.GameObjects.Container;
-  private bossBody!: Phaser.GameObjects.Arc;
-  private bossX = GAME_WIDTH - 220;
-  private bossHp = 3;
-  private phase = 0; // 0..2
   private platforms!: Phaser.Physics.Arcade.StaticGroup;
-  private fogWalls!: Phaser.Physics.Arcade.StaticGroup;
-  private hiddenWalls!: Phaser.Physics.Arcade.StaticGroup;
-  private clones: Phaser.GameObjects.Arc[] = [];
-  private invulnerable = false;
-  private bossText!: Phaser.GameObjects.Text;
-  private phaseText!: Phaser.GameObjects.Text;
+  private enemies!: Phaser.Physics.Arcade.Group;
+  private orb?: Phaser.Physics.Arcade.Sprite;
+  private orbTouched = false;
+  private wrongAnswers = 0;
 
   constructor() { super("BossMainline"); }
 
-  init(data: { powers?: Power[]; hearts?: number }) {
-    this.bossHp = 3;
-    this.phase = 0;
-    this.invulnerable = false;
-    this.clones = [];
+  init(data: { powers?: Power[]; hearts?: number; wrongAnswers?: number }) {
+    this.orbTouched = false;
+    this.wrongAnswers = data.wrongAnswers ?? 0;
     (this as unknown as { initData: { powers: Power[]; hearts: number } }).initData = {
       powers: data.powers ?? [],
       hearts: data.hearts ?? 3,
@@ -61,9 +49,6 @@ export class BossMainlineScene extends Phaser.Scene {
     this.makeRect(560, ground - 300, 180, 28, 0x4a5568);
     this.makeRect(900, ground - 220, 180, 28, 0x4a5568);
 
-    this.fogWalls = this.physics.add.staticGroup();
-    this.hiddenWalls = this.physics.add.staticGroup();
-
     const playerTex =
       data.powers.includes("goggles") ? "adventurer-goggles" :
       data.powers.includes("bubbles") ? "adventurer-bubbles" :
@@ -73,13 +58,37 @@ export class BossMainlineScene extends Phaser.Scene {
     for (const p of data.powers) this.player.grantPower(p);
     this.player.hearts = data.hearts;
     this.physics.add.collider(this.player, this.platforms);
-    this.physics.add.collider(this.player, this.fogWalls);
-    this.physics.add.collider(this.player, this.hiddenWalls);
 
-    this.bossBody = this.add.circle(0, 0, 60, 0xb02a55).setStrokeStyle(4, 0x3a0d24);
-    const bossEye = this.add.circle(0, -10, 14, 0xffd166);
-    this.boss = this.add.container(this.bossX, GAME_HEIGHT - 180, [this.bossBody, bossEye]);
-    this.tweens.add({ targets: this.boss, y: this.boss.y - 18, duration: 1200, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    this.enemies = this.physics.add.group();
+    const baseEnemies: Array<{ x: number; y: number; range: number }> = [
+      { x: 360, y: ground - 60, range: 200 },
+      { x: 720, y: ground - 60, range: 220 },
+    ];
+    for (const e of baseEnemies) this.enemies.add(new CorruptionEnemy(this, e.x, e.y, e.range));
+    this.spawnPenaltyBugs(this.wrongAnswers, ground);
+    this.physics.add.collider(this.enemies, this.platforms);
+    this.physics.add.overlap(this.player, this.enemies, () => this.onHit(), undefined, this);
+
+    // The Copilot Orb — touch to win.
+    const orbX = GAME_WIDTH - 140;
+    const orbY = GAME_HEIGHT - 200;
+    if (this.textures.exists("copilot-orb")) {
+      this.orb = this.physics.add.sprite(orbX, orbY, "copilot-orb");
+      const targetH = 140;
+      this.orb.setScale(targetH / this.orb.height);
+    } else {
+      // Fallback if asset missing — still playable.
+      const fallback = this.physics.add.sprite(orbX, orbY, "__missing__");
+      this.orb = fallback;
+    }
+    (this.orb.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
+
+    // Soft halo behind the orb.
+    const halo = this.add.circle(orbX, orbY, 80, 0x6cd0ff, 0.25).setDepth(-1);
+    this.tweens.add({ targets: halo, scale: 1.15, alpha: 0.5, duration: 900, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    this.tweens.add({ targets: this.orb, y: orbY - 14, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+
+    this.physics.add.overlap(this.player, this.orb, () => this.onOrbTouch(), undefined, this);
 
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
 
@@ -87,12 +96,14 @@ export class BossMainlineScene extends Phaser.Scene {
     this.hud.setHearts(this.player.hearts);
     this.hud.setPowers(this.player.powers);
 
-    this.bossText = this.add.text(GAME_WIDTH - 24, 24, this.bossHpString(), {
-      fontFamily: "system-ui, sans-serif",
-      fontSize: "20px",
-      color: "#ff6b81",
-    }).setOrigin(1, 0).setScrollFactor(0).setDepth(50);
-    this.phaseText = this.add.text(GAME_WIDTH / 2, 60, "", {
+    if (this.wrongAnswers > 0) {
+      this.time.delayedCall(400, () => {
+        const noun = this.wrongAnswers === 1 ? "bug" : "bugs";
+        this.hud.flashWarning(`⚠ ${this.wrongAnswers} extra ${noun} from missed knowledge checks!`);
+      });
+    }
+
+    this.add.text(GAME_WIDTH / 2, 60, "Reach the Copilot Orb to restore the Mainline", {
       fontFamily: "Georgia, serif",
       fontSize: "20px",
       color: "#e6edf3",
@@ -102,7 +113,7 @@ export class BossMainlineScene extends Phaser.Scene {
     this.input.keyboard!.on("keydown-M", () => AudioBus.toggleMute());
     this.input.keyboard!.on("keydown-R", () => {
       AudioBus.stopBackground();
-      this.scene.restart({ powers: data.powers, hearts: data.hearts });
+      this.scene.restart({ powers: data.powers, hearts: data.hearts, wrongAnswers: this.wrongAnswers });
     });
     this.input.keyboard!.on("keydown-Q", () => {
       AudioBus.stopBackground();
@@ -110,10 +121,7 @@ export class BossMainlineScene extends Phaser.Scene {
     });
 
     AudioBus.startBackground([220, 233, 277, 330, 277, 233]);
-    this.startPhase();
   }
-
-  private bossHpString() { return `Corruption HP: ${"●".repeat(this.bossHp)}${"○".repeat(Math.max(0, 3 - this.bossHp))}`; }
 
   private makeRect(x: number, y: number, w: number, h: number, color: number) {
     const r = this.add.rectangle(x, y, w, h, color).setStrokeStyle(2, 0x2d3748);
@@ -122,45 +130,20 @@ export class BossMainlineScene extends Phaser.Scene {
     return r;
   }
 
-  private startPhase() {
-    this.invulnerable = true;
-    this.clones.forEach((c) => c.destroy());
-    this.clones = [];
-    this.fogWalls.clear(true, true);
-    this.hiddenWalls.clear(true, true);
-    const requirement: Power = (["fork", "bubbles", "goggles"] as Power[])[this.phase];
-    const labels: Record<Power, string> = {
-      fork: "Phase 1 — split paths. Use the Fork (double jump) to land on top.",
-      bubbles: "Phase 2 — fog walls. Bubbles of Clarity dissolve them.",
-      goggles: "Phase 3 — hidden barriers. Goggles of Insight reveal the lane.",
-    };
-    this.phaseText.setText(labels[requirement]);
-
-    if (requirement === "fork") {
-      const c1 = this.add.circle(this.bossX - 80, GAME_HEIGHT - 180, 50, 0x6e1c39).setStrokeStyle(3, 0x3a0d24);
-      const c2 = this.add.circle(this.bossX + 80, GAME_HEIGHT - 180, 50, 0x6e1c39).setStrokeStyle(3, 0x3a0d24);
-      this.clones = [c1, c2];
+  private spawnPenaltyBugs(count: number, ground: number) {
+    if (count <= 0) return;
+    const margin = 200;
+    const span = Math.max(400, GAME_WIDTH - margin * 2);
+    for (let i = 0; i < count; i++) {
+      const x = margin + ((i + 1) * span) / (count + 1);
+      const range = 160 + (i % 3) * 60;
+      this.enemies.add(new CorruptionEnemy(this, x, ground - 60, range));
     }
-    if (requirement === "bubbles") {
-      const wall1 = this.add.rectangle(this.bossX - 120, GAME_HEIGHT - 100, 30, 200, 0xb6c2cf, 0.85).setStrokeStyle(2, 0x4a5568);
-      const wall2 = this.add.rectangle(this.bossX + 120, GAME_HEIGHT - 100, 30, 200, 0xb6c2cf, 0.85).setStrokeStyle(2, 0x4a5568);
-      this.physics.add.existing(wall1, true);
-      this.physics.add.existing(wall2, true);
-      this.fogWalls.add(wall1);
-      this.fogWalls.add(wall2);
-      this.physics.add.collider(this.player, this.fogWalls);
-    }
-    if (requirement === "goggles") {
-      const ceiling = this.add.rectangle(this.bossX, GAME_HEIGHT - 240, 240, 28, 0x6cd0ff, 0).setStrokeStyle(2, 0x6cd0ff);
-      this.physics.add.existing(ceiling, true);
-      this.hiddenWalls.add(ceiling);
-    }
-
-    this.tweens.add({ targets: this.boss, alpha: { from: 0.4, to: 1 }, duration: 250, repeat: 2, onComplete: () => { this.invulnerable = false; } });
   }
 
   override update() {
     this.player.update();
+    this.enemies.children.iterate((e) => { (e as CorruptionEnemy).update(); return true; });
     if (this.player.y > GAME_HEIGHT + 60) {
       this.player.hearts = Math.max(0, this.player.hearts - 1);
       AudioBus.hit();
@@ -168,64 +151,25 @@ export class BossMainlineScene extends Phaser.Scene {
       if (this.player.hearts <= 0) return this.gameOver();
       this.player.setPosition(80, GAME_HEIGHT - 200);
       this.player.setVelocity(0, 0);
-      return;
-    }
-
-    const requirement: Power = (["fork", "bubbles", "goggles"] as Power[])[this.phase];
-
-    // Phase 2: bubbles dissolves fog
-    if (requirement === "bubbles" && this.player.powers.has("bubbles")) {
-      this.fogWalls.clear(true, true);
-    }
-    // Phase 3: goggles reveal hidden ceiling (and disable it as a barrier under)
-    if (requirement === "goggles") {
-      const reveal = this.player.powers.has("goggles");
-      this.hiddenWalls.children.iterate((c) => {
-        const r = c as Phaser.GameObjects.Rectangle & { body: Phaser.Physics.Arcade.StaticBody };
-        r.fillAlpha = reveal ? 0.6 : 0;
-        r.body.enable = !reveal; // when revealed it becomes safe (dissolves)
-        return true;
-      });
-    }
-
-    // Hit detection: player must touch the boss container's bbox while phase requirement met
-    if (!this.invulnerable && this.canDamageBoss(requirement)) {
-      const bx = this.boss.x, by = this.boss.y;
-      const dx = Math.abs(this.player.x - bx);
-      const dy = Math.abs(this.player.y - by);
-      if (dx < 70 && dy < 80) {
-        this.bossHp -= 1;
-        AudioBus.collect();
-        this.cameras.main.flash(160, 255, 100, 100);
-        this.bossText.setText(this.bossHpString());
-        this.invulnerable = true;
-        this.player.setVelocityY(-360);
-        if (this.bossHp <= 0) return this.win();
-        this.phase = Math.min(2, this.phase + 1);
-        this.time.delayedCall(700, () => this.startPhase());
-      }
-    }
-
-    // Boss "attack": shoots small dot toward player periodically (visual only here)
-    // Skipped for simplicity; contact damage when player overlaps boss while invulnerable phase
-    if (!this.invulnerable) {
-      const dx = Math.abs(this.player.x - this.boss.x);
-      const dy = Math.abs(this.player.y - this.boss.y);
-      if (dx < 60 && dy < 60 && !this.canDamageBoss(requirement)) {
-        if (this.player.damage(this.time.now)) {
-          AudioBus.hit();
-          this.hud.setHearts(this.player.hearts);
-          if (this.player.hearts <= 0) this.gameOver();
-        }
-      }
     }
   }
 
-  private canDamageBoss(requirement: Power): boolean {
-    if (requirement === "fork") return this.player.powers.has("fork") && this.player.y < this.boss.y - 30;
-    if (requirement === "bubbles") return this.player.powers.has("bubbles") && this.fogWalls.countActive(true) === 0;
-    if (requirement === "goggles") return this.player.powers.has("goggles");
-    return false;
+  private onHit() {
+    if (this.orbTouched) return;
+    if (this.player.damage(this.time.now)) {
+      AudioBus.hit();
+      this.hud.setHearts(this.player.hearts);
+      if (this.player.hearts <= 0) this.gameOver();
+    }
+  }
+
+  private onOrbTouch() {
+    if (this.orbTouched) return;
+    this.orbTouched = true;
+    AudioBus.collect();
+    this.cameras.main.flash(400, 200, 230, 255);
+    this.physics.pause();
+    this.time.delayedCall(450, () => this.win());
   }
 
   private win() {
