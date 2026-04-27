@@ -7,6 +7,18 @@ This project follows [Semantic Versioning](https://semver.org/) and
 Versions in the `0.x` range are **beta** — APIs, levels, and balance may
 change at any time. The first GA release will be `1.0.0`.
 
+## [0.1.2] - Beta
+
+### Changed
+- End-of-level reward modal hides the redundant text caption on Levels 2
+  (Ducky) and 3 (Copilot) so the in-image artwork stands on its own.
+- Level 3 (Copilot): falling into the gaps is now **fatal** — you lose
+  the run instead of just dropping a heart. Use the bridge platforms.
+
+### Added
+- Animated **lava** in the floor gaps on Level 3, with shimmering glow
+  and bobbing bubbles to telegraph the danger.
+
 ## [0.1.1] - Beta
 
 ### Changed

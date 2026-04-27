@@ -29,6 +29,9 @@ export interface LevelConfig {
   enemies: Array<{ x: number; y: number; range: number }>;
   hiddenPlatforms?: PlatformDef[]; // visible only with "goggles"
   fogBlocks?: PlatformDef[];       // walls that block path until "bubbles"
+  lavaPits?: Array<{ x: number; y: number; w: number; h: number }>;
+  fatalFall?: boolean;             // falling off the world ends the run
+  hideRewardCaption?: boolean;     // poster contains its own text — skip caption
   mentor: { x: number; y: number; portraitKey: string };
   rewardKey: string;
   rewardPower: Power;
@@ -93,6 +96,10 @@ export abstract class BaseLevelScene extends Phaser.Scene {
     this.fogGroup = this.physics.add.staticGroup();
     for (const p of cfg.fogBlocks ?? []) {
       this.makePlatform(p, 0xb6c2cf, 0x4a5568);
+    }
+
+    for (const pit of cfg.lavaPits ?? []) {
+      this.drawLavaPit(pit.x, pit.y, pit.w, pit.h);
     }
 
     this.enemies = this.physics.add.group();
@@ -207,6 +214,14 @@ export abstract class BaseLevelScene extends Phaser.Scene {
   }
 
   protected onFall() {
+    const cfg = this.config();
+    if (cfg.fatalFall) {
+      this.player.hearts = 0;
+      AudioBus.hit();
+      this.hud.setHearts(0);
+      this.gameOver();
+      return;
+    }
     this.player.hearts = Math.max(0, this.player.hearts - 1);
     AudioBus.hit();
     this.hud.setHearts(this.player.hearts);
@@ -215,6 +230,29 @@ export abstract class BaseLevelScene extends Phaser.Scene {
     } else {
       this.player.setPosition(80, GAME_HEIGHT - 200);
       this.player.setVelocity(0, 0);
+    }
+  }
+
+  protected drawLavaPit(x: number, y: number, w: number, h: number) {
+    const base = this.add.rectangle(x, y, w, h, 0xff5722).setDepth(-1);
+    base.setStrokeStyle(2, 0xffb347);
+    const glow = this.add.rectangle(x, y - h / 2 + 4, w - 8, 6, 0xffd166, 0.85).setDepth(-1);
+    this.tweens.add({ targets: glow, alpha: 0.35, duration: 700, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    // A few bubbles bobbing up
+    const count = Math.max(2, Math.round(w / 220));
+    for (let i = 0; i < count; i++) {
+      const bx = x - w / 2 + (w / (count + 1)) * (i + 1);
+      const bubble = this.add.circle(bx, y - h / 2 + 10, 5, 0xffe066, 0.9).setDepth(-1);
+      this.tweens.add({
+        targets: bubble,
+        y: y - h / 2 - 6,
+        alpha: 0.2,
+        duration: 900 + i * 180,
+        yoyo: true,
+        repeat: -1,
+        ease: "Sine.easeInOut",
+        delay: i * 220,
+      });
     }
   }
 
@@ -257,7 +295,8 @@ export abstract class BaseLevelScene extends Phaser.Scene {
       bubbles: "Bubbles of Clarity acquired",
       goggles: "Goggles of Insight acquired",
     };
-    await showRewardModal(this, cfg.bgKey, captions[cfg.rewardPower]);
+    const caption = cfg.hideRewardCaption ? undefined : captions[cfg.rewardPower];
+    await showRewardModal(this, cfg.bgKey, caption);
 
     const q = QUIZZES[cfg.key];
     if (q) {
