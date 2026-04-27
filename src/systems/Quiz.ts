@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { QuizQuestion } from "../data/quizzes";
+import { shuffleQuestion } from "../util/shuffle";
 
 /**
  * Modal multiple-choice quiz. Shown at the end of each level once the player
@@ -13,7 +14,8 @@ export class Quiz {
     this.scene = scene;
   }
 
-  show(q: QuizQuestion): Promise<void> {
+  show(question: QuizQuestion): Promise<void> {
+    const q = shuffleQuestion(question);
     return new Promise((resolve) => {
       const w = this.scene.scale.width;
       const h = this.scene.scale.height;

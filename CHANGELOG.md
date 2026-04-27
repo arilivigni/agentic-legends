@@ -25,6 +25,10 @@ change at any time. The first GA release will be `1.0.0`.
 - Animated **lava** in the floor gaps on Level 3, with shimmering glow
   and bobbing bubbles. Touching the lava is now fatal — the screen
   flashes red and the run ends immediately.
+- End-of-level Knowledge Check now **shuffles answer order** on every
+  attempt, so the correct option's letter (A/B/C/D) is randomized per
+  play. Backed by `src/util/shuffle.ts` (pure / RNG-seedable) with 6
+  new Vitest cases (24 tests total).
 
 ## [0.1.1] - Beta
 
