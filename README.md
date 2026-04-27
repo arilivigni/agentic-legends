@@ -97,4 +97,4 @@ agentic-legends/
 
 ## License
 
-[MIT](./LICENSE) — Ari Livigni, 2025.
+&copy; 2026 Ari LiVigni &bull; [Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md) &bull; [MIT License](https://gh.io/mit)
