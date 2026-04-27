@@ -32,7 +32,7 @@ export interface LevelConfig {
   lavaPits?: Array<{ x: number; y: number; w: number; h: number }>;
   fatalFall?: boolean;             // falling off the world ends the run
   hideRewardCaption?: boolean;     // poster contains its own text — skip caption
-  mentor: { x: number; y: number; portraitKey: string };
+  mentor: { x: number; y: number; portraitKey: string; cropTopFraction?: number };
   rewardKey: string;
   rewardPower: Power;
   mentorDialog: string[];
@@ -50,6 +50,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
   protected reward?: Phaser.Physics.Arcade.Sprite;
   protected hiddenGroup!: Phaser.Physics.Arcade.StaticGroup;
   protected fogGroup!: Phaser.Physics.Arcade.StaticGroup;
+  protected lavaZones!: Phaser.Physics.Arcade.StaticGroup;
   protected escKey!: Phaser.Input.Keyboard.Key;
   protected muteKey!: Phaser.Input.Keyboard.Key;
   protected pauseOverlay?: Phaser.GameObjects.Container;
@@ -98,6 +99,7 @@ export abstract class BaseLevelScene extends Phaser.Scene {
       this.makePlatform(p, 0xb6c2cf, 0x4a5568);
     }
 
+    this.lavaZones = this.physics.add.staticGroup();
     for (const pit of cfg.lavaPits ?? []) {
       this.drawLavaPit(pit.x, pit.y, pit.w, pit.h);
     }
@@ -118,8 +120,9 @@ export abstract class BaseLevelScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.fogGroup);
     this.physics.add.collider(this.player, this.hiddenGroup);
     this.physics.add.overlap(this.player, this.enemies, () => this.onHit(), undefined, this);
+    this.physics.add.overlap(this.player, this.lavaZones, () => this.onLavaTouch(), undefined, this);
 
-    this.mentor = new Mentor(this, cfg.mentor.x, cfg.mentor.y, cfg.mentor.portraitKey);
+    this.mentor = new Mentor(this, cfg.mentor.x, cfg.mentor.y, cfg.mentor.portraitKey, cfg.mentor.cropTopFraction);
     this.physics.add.overlap(this.player, this.mentor, () => this.onMentor(), undefined, this);
 
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
@@ -236,9 +239,13 @@ export abstract class BaseLevelScene extends Phaser.Scene {
   protected drawLavaPit(x: number, y: number, w: number, h: number) {
     const base = this.add.rectangle(x, y, w, h, 0xff5722).setDepth(-1);
     base.setStrokeStyle(2, 0xffb347);
+    // Hit zone — overlap with player triggers fatal fall.
+    const zone = this.add.rectangle(x, y - h / 2 + 2, w, Math.max(8, h / 2));
+    zone.setVisible(false);
+    this.physics.add.existing(zone, true);
+    this.lavaZones.add(zone);
     const glow = this.add.rectangle(x, y - h / 2 + 4, w - 8, 6, 0xffd166, 0.85).setDepth(-1);
     this.tweens.add({ targets: glow, alpha: 0.35, duration: 700, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
-    // A few bubbles bobbing up
     const count = Math.max(2, Math.round(w / 220));
     for (let i = 0; i < count; i++) {
       const bx = x - w / 2 + (w / (count + 1)) * (i + 1);
@@ -254,6 +261,15 @@ export abstract class BaseLevelScene extends Phaser.Scene {
         delay: i * 220,
       });
     }
+  }
+
+  protected onLavaTouch() {
+    if (this.goalReached) return;
+    this.player.hearts = 0;
+    AudioBus.hit();
+    this.hud.setHearts(0);
+    this.cameras.main.flash(220, 255, 90, 30);
+    this.gameOver();
   }
 
   protected async onMentor() {

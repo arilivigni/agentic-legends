@@ -32,7 +32,7 @@ export class LevelMonaScene extends BaseLevelScene {
         { x: 2500, y: ground - 60, range: 160 },
       ],
       mentor: { x: 3380, y: ground - 80, portraitKey: "mona-portrait" },
-      rewardKey: "fork-reward",
+      rewardKey: "fork-icon",
       rewardPower: "fork",
       mentorDialog: MENTOR_DIALOG.mona,
       startingPlayerTexture: "adventurer-fork",

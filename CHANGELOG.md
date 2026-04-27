@@ -14,10 +14,17 @@ change at any time. The first GA release will be `1.0.0`.
   (Ducky) and 3 (Copilot) so the in-image artwork stands on its own.
 - Level 3 (Copilot): falling into the gaps is now **fatal** — you lose
   the run instead of just dropping a heart. Use the bridge platforms.
+- In-world reward "gift" sprites are now clean Phaser-drawn icons (a
+  fork-gem, a bubble cluster, and a pair of goggles) instead of the
+  speech-bubble poster art that contained dialog text.
+- The in-world mentor sprite for Ducky and Copilot crops the title band
+  ("ENLIGHTENMENT" / "SPELLS") off the top of the portrait so no
+  text is visible in-game.
 
 ### Added
 - Animated **lava** in the floor gaps on Level 3, with shimmering glow
-  and bobbing bubbles to telegraph the danger.
+  and bobbing bubbles. Touching the lava is now fatal — the screen
+  flashes red and the run ends immediately.
 
 ## [0.1.1] - Beta
 
