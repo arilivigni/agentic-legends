@@ -7,6 +7,17 @@ This project follows [Semantic Versioning](https://semver.org/) and
 Versions in the `0.x` range are **beta** — APIs, levels, and balance may
 change at any time. The first GA release will be `1.0.0`.
 
+## [0.1.3] - Beta
+
+### Fixed
+- Final-level **Copilot Orb** now renders reliably. The magenta arena
+  overlay was at the same depth as gameplay objects and could mask
+  later-added sprites; explicit depths (`overlay = -10`, `halo = 9`,
+  `orb = 10`) keep the orb in front. The orb is also larger (160 px)
+  and sits a bit lower so it's obviously reachable, with a brighter
+  halo and a programmatic fallback texture if the PNG ever fails to
+  load.
+
 ## [0.1.2] - Beta
 
 ### Changed

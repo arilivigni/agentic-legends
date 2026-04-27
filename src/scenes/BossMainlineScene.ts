@@ -41,6 +41,7 @@ export class BossMainlineScene extends Phaser.Scene {
     overlay.fillGradientStyle(0x3a0d24, 0x3a0d24, 0xb02a55, 0xb02a55, 0.5);
     overlay.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     overlay.setScrollFactor(0);
+    overlay.setDepth(-10);
 
     this.platforms = this.physics.add.staticGroup();
     const ground = GAME_HEIGHT - 40;
@@ -70,23 +71,35 @@ export class BossMainlineScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.enemies, () => this.onHit(), undefined, this);
 
     // The Copilot Orb — touch to win.
-    const orbX = GAME_WIDTH - 140;
-    const orbY = GAME_HEIGHT - 200;
+    const orbX = GAME_WIDTH - 160;
+    const orbY = GAME_HEIGHT - 240;
+
+    // Soft halo behind the orb (drawn first; depth just under orb).
+    const halo = this.add.circle(orbX, orbY, 90, 0x6cd0ff, 0.35).setDepth(9);
+    this.tweens.add({ targets: halo, scale: 1.2, alpha: 0.6, duration: 900, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+
     if (this.textures.exists("copilot-orb")) {
       this.orb = this.physics.add.sprite(orbX, orbY, "copilot-orb");
-      const targetH = 140;
+      const targetH = 160;
       this.orb.setScale(targetH / this.orb.height);
     } else {
-      // Fallback if asset missing — still playable.
-      const fallback = this.physics.add.sprite(orbX, orbY, "__missing__");
-      this.orb = fallback;
+      // Fallback if asset missing — visible blue circle so the goal is reachable.
+      const fallbackTex = this.make.graphics({ x: 0, y: 0 }, false);
+      fallbackTex.fillStyle(0x6c63ff, 1);
+      fallbackTex.fillCircle(60, 60, 56);
+      fallbackTex.fillStyle(0x6cd0ff, 1);
+      fallbackTex.fillCircle(40, 50, 8);
+      fallbackTex.fillCircle(80, 50, 8);
+      fallbackTex.generateTexture("copilot-orb-fallback", 120, 120);
+      fallbackTex.destroy();
+      this.orb = this.physics.add.sprite(orbX, orbY, "copilot-orb-fallback");
     }
+    this.orb.setDepth(10);
     (this.orb.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
+    (this.orb.body as Phaser.Physics.Arcade.Body).setImmovable(true);
 
-    // Soft halo behind the orb.
-    const halo = this.add.circle(orbX, orbY, 80, 0x6cd0ff, 0.25).setDepth(-1);
-    this.tweens.add({ targets: halo, scale: 1.15, alpha: 0.5, duration: 900, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
-    this.tweens.add({ targets: this.orb, y: orbY - 14, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    this.tweens.add({ targets: this.orb, y: orbY - 16, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    this.tweens.add({ targets: halo, y: orbY - 16, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
 
     this.physics.add.overlap(this.player, this.orb, () => this.onOrbTouch(), undefined, this);
 
