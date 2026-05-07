@@ -51,10 +51,7 @@ export class BossMainlineScene extends Phaser.Scene {
     this.makeRect(560, ground - 300, 180, 28, 0x4a5568);
     this.makeRect(900, ground - 220, 180, 28, 0x4a5568);
 
-    const playerTex =
-      data.powers.includes("goggles") ? "adventurer-goggles" :
-      data.powers.includes("bubbles") ? "adventurer-bubbles" :
-      data.powers.includes("fork") ? "adventurer-fork" : "adventurer-fork";
+    const playerTex = this.textures.exists("adventurer-walk") ? "adventurer-walk" : "adventurer-fork";
 
     this.player = new Adventurer(this, 80, GAME_HEIGHT - 200, playerTex);
     for (const p of data.powers) this.player.grantPower(p);
