@@ -57,10 +57,77 @@ export class PreloadScene extends Phaser.Scene {
       const url = urlFor(slug);
       if (url) this.load.image(key, url);
     }
+
+    const walkUrl = urlFor("adventurer-walk");
+    if (walkUrl) {
+      this.load.spritesheet("adventurer-walk", walkUrl, {
+        frameWidth: 76,
+        frameHeight: 116,
+      });
+    }
+
+    const idleUrl = urlFor("adventurer-idle");
+    if (idleUrl) {
+      this.load.spritesheet("adventurer-idle", idleUrl, {
+        frameWidth: 128,
+        frameHeight: 124,
+      });
+    }
+
+    const jumpUrl = urlFor("adventurer-jump");
+    if (jumpUrl) {
+      this.load.spritesheet("adventurer-jump", jumpUrl, {
+        frameWidth: 72,
+        frameHeight: 74,
+      });
+    }
   }
 
   create() {
     document.getElementById("boot-msg")?.remove();
+    if (this.textures.exists("adventurer-walk")) {
+      // Pixel-art: avoid bilinear blur on upscale.
+      this.textures.get("adventurer-walk").setFilter(Phaser.Textures.FilterMode.NEAREST);
+      if (!this.anims.exists("adventurer-walk")) {
+        this.anims.create({
+          key: "adventurer-walk",
+          frames: this.anims.generateFrameNumbers("adventurer-walk", { start: 0, end: 7 }),
+          frameRate: 12,
+          repeat: -1,
+        });
+      }
+    }
+    if (this.textures.exists("adventurer-idle")) {
+      this.textures.get("adventurer-idle").setFilter(Phaser.Textures.FilterMode.NEAREST);
+      if (!this.anims.exists("adventurer-idle")) {
+        this.anims.create({
+          key: "adventurer-idle",
+          frames: this.anims.generateFrameNumbers("adventurer-idle", { start: 0, end: 7 }),
+          frameRate: 6,
+          repeat: -1,
+        });
+      }
+    }
+    if (this.textures.exists("adventurer-jump")) {
+      this.textures.get("adventurer-jump").setFilter(Phaser.Textures.FilterMode.NEAREST);
+      // Sheet packs two anims: frames 0-3 = upward jump, frames 4-7 = falling.
+      if (!this.anims.exists("adventurer-jump")) {
+        this.anims.create({
+          key: "adventurer-jump",
+          frames: this.anims.generateFrameNumbers("adventurer-jump", { start: 0, end: 3 }),
+          frameRate: 10,
+          repeat: 0,
+        });
+      }
+      if (!this.anims.exists("adventurer-fall")) {
+        this.anims.create({
+          key: "adventurer-fall",
+          frames: this.anims.generateFrameNumbers("adventurer-jump", { start: 4, end: 7 }),
+          frameRate: 8,
+          repeat: -1,
+        });
+      }
+    }
     this.generateRewardIcons();
     this.scene.start("Title");
   }

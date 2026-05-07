@@ -4,6 +4,12 @@ import { getTouchInput, type TouchInputState } from "../systems/TouchControls";
 
 export type Power = "fork" | "bubbles" | "goggles";
 
+const POWER_BADGE_KEY: Record<Power, string> = {
+  fork: "fork-icon",
+  bubbles: "bubbles-icon",
+  goggles: "goggles-icon",
+};
+
 interface PlayerInputs {
   left: Phaser.Input.Keyboard.Key;
   right: Phaser.Input.Keyboard.Key;
@@ -23,16 +29,48 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
   private touch: TouchInputState;
   private jumpsRemaining = 1;
   private jumpHeld = false;
+  private badges?: Phaser.GameObjects.Container;
+  private lastJumpTapAt = -1000;
+  private facingRight = true;
+
+  // Natural facing direction of each animation's source frames. Walk frames
+  // were drawn facing right; idle frames were drawn facing left; jump/fall
+  // frames were drawn facing right.
+  private static readonly ANIM_NATURAL_FACING: Record<string, "left" | "right"> = {
+    "adventurer-walk": "right",
+    "adventurer-idle": "left",
+    "adventurer-jump": "right",
+    "adventurer-fall": "right",
+  };
+
+  // Display-space targets so visuals stay consistent across walk/idle
+  // textures, which have different native frame sizes.
+  private static readonly TARGET_DISPLAY_HEIGHT = 160;
+  private static readonly TARGET_BODY_WIDTH = 36;
+  private static readonly TARGET_BODY_HEIGHT = 110;
 
   constructor(scene: Phaser.Scene, x: number, y: number, textureKey: string) {
     super(scene, x, y, textureKey);
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setCollideWorldBounds(true);
-    this.setSize(this.width * 0.45, this.height * 0.85);
-    const targetH = 120;
-    this.setScale(targetH / this.height);
+    this.setOrigin(0.5, 0.5);
     this.setDepth(10);
+    if (scene.textures.exists(textureKey)) {
+      scene.textures.get(textureKey).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    }
+    if (scene.textures.exists("adventurer-idle")) {
+      scene.textures.get("adventurer-idle").setFilter(Phaser.Textures.FilterMode.NEAREST);
+    }
+    if (scene.textures.exists("adventurer-jump")) {
+      scene.textures.get("adventurer-jump").setFilter(Phaser.Textures.FilterMode.NEAREST);
+    }
+    this.applySpriteFit();
+    if (scene.anims.exists("adventurer-walk")) {
+      this.setFrame(0);
+    }
+
+    this.badges = scene.add.container(x, y).setDepth(this.depth + 1);
 
     const kb = scene.input.keyboard!;
     this.inputs = {
@@ -46,21 +84,114 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
       altSprint: kb.addKey(Phaser.Input.Keyboard.KeyCodes.X),
     };
     this.touch = getTouchInput(scene);
+
+    this.once(Phaser.GameObjects.Events.DESTROY, () => {
+      this.badges?.destroy();
+      this.badges = undefined;
+    });
   }
 
-  setTextureForPower(scene: Phaser.Scene) {
-    if (this.powers.has("goggles") && scene.textures.exists("adventurer-goggles")) {
-      this.setTexture("adventurer-goggles");
-    } else if (this.powers.has("bubbles") && scene.textures.exists("adventurer-bubbles")) {
-      this.setTexture("adventurer-bubbles");
-    } else if (this.powers.has("fork") && scene.textures.exists("adventurer-fork")) {
-      this.setTexture("adventurer-fork");
+  /**
+   * Recompute scale and physics body so the displayed sprite stays a
+   * consistent size and the collision box stays consistent on screen,
+   * regardless of which animation's frames are currently playing
+   * (walk frames are 76×116; idle frames are 128×124).
+   */
+  private applySpriteFit() {
+    const frameH = this.frame.height || this.height || 1;
+    const frameW = this.frame.width || this.width || 1;
+    const scale = Adventurer.TARGET_DISPLAY_HEIGHT / frameH;
+    this.setScale(scale);
+    // setSize takes texture-space pixels; convert from display-space targets.
+    const bodyW = Adventurer.TARGET_BODY_WIDTH / scale;
+    const bodyH = Adventurer.TARGET_BODY_HEIGHT / scale;
+    this.setSize(bodyW, bodyH);
+    // Bottom-anchor the body to the visible feet rather than re-centring it,
+    // so the player's standing point doesn't jump when the texture switches.
+    const offsetX = (frameW - bodyW) / 2;
+    const offsetY = frameH - bodyH;
+    this.setOffset(offsetX, offsetY);
+  }
+
+  /**
+   * Select walk vs. idle vs. jump/fall based on motion + ground state + vy.
+   */
+  private updateAnimationState(moving: boolean, sprinting: boolean, onFloor: boolean) {
+    const anims = this.scene.anims;
+    const hasWalk = anims.exists("adventurer-walk");
+    const hasIdle = anims.exists("adventurer-idle");
+    const hasJump = anims.exists("adventurer-jump");
+    const hasFall = anims.exists("adventurer-fall");
+    if (!hasWalk && !hasIdle && !hasJump) return;
+
+    let desired: string | null;
+    if (!onFloor) {
+      const vy = this.body?.velocity.y ?? 0;
+      // Small dead-zone around apex avoids flicker between jump and fall.
+      const rising = vy < -40;
+      if (rising && hasJump) desired = "adventurer-jump";
+      else if (!rising && hasFall) desired = "adventurer-fall";
+      else if (hasJump) desired = "adventurer-jump";
+      else {
+        // Asset missing: fall back to freezing the ground anim mid-air.
+        if (this.anims.isPlaying) this.anims.pause();
+        return;
+      }
+    } else {
+      desired = moving && hasWalk ? "adventurer-walk"
+              : hasIdle ? "adventurer-idle"
+              : hasWalk ? "adventurer-walk"
+              : null;
     }
+    if (!desired) return;
+
+    const current = this.anims.currentAnim?.key;
+    if (current !== desired || (!this.anims.isPlaying && desired !== "adventurer-jump")) {
+      // For jump (non-looping) we don't want to restart it every tick once it
+      // has played out — the `current !== desired` guard handles that.
+      this.anims.play({ key: desired, repeat: desired === "adventurer-jump" ? 0 : -1 }, true);
+      this.applySpriteFit();
+    } else if (this.anims.isPaused) {
+      this.anims.resume();
+    }
+    // Sprint speed-up applies to walk only.
+    this.anims.timeScale = desired === "adventurer-walk" && sprinting ? 1.5 : 1;
+
+    // Mirror the sprite if its source faces opposite the current direction.
+    const natural = Adventurer.ANIM_NATURAL_FACING[desired] ?? "right";
+    const naturalRight = natural === "right";
+    this.setFlipX(this.facingRight !== naturalRight);
+  }
+
+  /**
+   * Kept for backwards compatibility — power state is now communicated via
+   * overlay badges, not texture swaps. No-op.
+   */
+  setTextureForPower(_scene: Phaser.Scene) {
+    /* no-op */
   }
 
   grantPower(p: Power) {
     this.powers.add(p);
-    this.setTextureForPower(this.scene);
+    this.refreshBadges();
+  }
+
+  private refreshBadges() {
+    if (!this.badges) return;
+    this.badges.removeAll(true);
+    const owned: Power[] = (["fork", "bubbles", "goggles"] as const).filter((p) => this.powers.has(p));
+    const badgeSize = 22;
+    const gap = 4;
+    const totalW = owned.length * badgeSize + Math.max(0, owned.length - 1) * gap;
+    let x = -totalW / 2 + badgeSize / 2;
+    for (const p of owned) {
+      const key = POWER_BADGE_KEY[p];
+      if (!this.scene.textures.exists(key)) continue;
+      const icon = this.scene.add.image(x, 0, key);
+      icon.setDisplaySize(badgeSize, badgeSize);
+      this.badges.add(icon);
+      x += badgeSize + gap;
+    }
   }
 
   damage(now: number): boolean {
@@ -78,8 +209,6 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
     return true;
   }
 
-  private lastJumpTapAt = -1000;
-
   override update() {
     const left = this.inputs.left.isDown || this.inputs.altLeft.isDown || this.touch.left;
     const right = this.inputs.right.isDown || this.inputs.altRight.isDown || this.touch.right;
@@ -89,15 +218,24 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
     const speed = sprinting ? PHYSICS.playerSpeed * 1.6 : PHYSICS.playerSpeed;
     if (left) {
       this.setVelocityX(-speed);
-      this.setFlipX(true);
+      this.facingRight = false;
     } else if (right) {
       this.setVelocityX(speed);
-      this.setFlipX(false);
+      this.facingRight = true;
     } else {
       this.setVelocityX(0);
     }
 
-    const onFloor = this.body?.blocked.down || this.body?.touching.down;
+    // Drive walk/idle animation from horizontal velocity + ground state.
+    const moving = Math.abs(this.body?.velocity.x ?? 0) > 5;
+    const onFloor = !!(this.body?.blocked.down || this.body?.touching.down);
+    this.updateAnimationState(moving, sprinting, onFloor);
+
+    if (this.badges) {
+      this.badges.setPosition(this.x, this.y - this.displayHeight / 2 - 14);
+      this.badges.setAlpha(this.alpha);
+    }
+
     if (onFloor) {
       this.jumpsRemaining = this.powers.has("fork") ? 2 : 1;
     }
@@ -107,6 +245,7 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
       const now = this.scene.time.now;
       const dt = now - this.lastJumpTapAt;
       const vy = this.body?.velocity.y ?? 0;
+      let jumped = false;
       // Double-tap Space leap: a quick second tap while rising (or right at
       // takeoff) supercharges the jump to ~1.55x without consuming an extra
       // jump charge — the discoverable trick to reach high platforms.
@@ -117,11 +256,22 @@ export class Adventurer extends Phaser.Physics.Arcade.Sprite {
           scale: { from: this.scale * 1.1, to: this.scale },
           duration: 220,
         });
+        jumped = true;
       } else if (this.jumpsRemaining > 0) {
         const baseV = this.jumpsRemaining === 2 ? PHYSICS.jumpVelocity : PHYSICS.doubleJumpVelocity;
         const v = sprinting ? baseV * 1.15 : baseV;
         this.setVelocityY(v);
         this.jumpsRemaining -= 1;
+        jumped = true;
+      }
+      // Restart the jump anim from frame 0 on every successful jump trigger
+      // (including the airborne double-jump and the leap), so the launch
+      // pose syncs with the input.
+      if (jumped && this.scene.anims.exists("adventurer-jump")) {
+        this.anims.play({ key: "adventurer-jump", repeat: 0 });
+        this.applySpriteFit();
+        const natural = Adventurer.ANIM_NATURAL_FACING["adventurer-jump"] ?? "right";
+        this.setFlipX(this.facingRight !== (natural === "right"));
       }
       this.lastJumpTapAt = now;
     }

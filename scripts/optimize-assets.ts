@@ -5,6 +5,10 @@
  * web-friendly WebP under `src/assets/generated/`, and additionally produces a
  * "portrait" version for character images where the title text band at the
  * top ~22% of the source has been cropped away.
+ *
+ * Specs flagged `passthrough: true` are copied verbatim as PNG (no resize, no
+ * re-encode). Use this for pixel-art sprite sheets where lossy WebP would
+ * blur hard pixel edges.
  */
 import { promises as fs } from "node:fs";
 import path from "node:path";
@@ -23,6 +27,12 @@ interface AssetSpec {
   slug: string;
   /** When true, also emit a `${slug}-portrait.webp` with the top text band cropped. */
   portrait: boolean;
+  /**
+   * When true, copy the source PNG verbatim to the output directory as
+   * `${slug}.png` instead of re-encoding to WebP. Use for pixel-art sprite
+   * sheets where lossy compression would destroy hard pixel edges.
+   */
+  passthrough?: boolean;
 }
 
 const ASSETS: AssetSpec[] = [
@@ -38,6 +48,9 @@ const ASSETS: AssetSpec[] = [
   { file: "goggles-of-insight-reward.png", slug: "goggles-reward", portrait: false },
   { file: "next-challenge-hero.png", slug: "next-challenge-hero", portrait: false },
   { file: "next-challenge-item.png", slug: "next-challenge-item", portrait: false },
+  { file: "adventurer-mage-sheet.png", slug: "adventurer-walk", portrait: false, passthrough: true },
+  { file: "adventurer-idle-sheet.png", slug: "adventurer-idle", portrait: false, passthrough: true },
+  { file: "adventurer-jump-sheet.png", slug: "adventurer-jump", portrait: false, passthrough: true },
 ];
 
 async function ensureDir(dir: string) {
@@ -46,10 +59,22 @@ async function ensureDir(dir: string) {
 
 async function processOne(spec: AssetSpec) {
   const srcPath = path.join(SRC_DIR, spec.file);
+  const srcStat = await fs.stat(srcPath);
+  const kb = (n: number) => `${(n / 1024).toFixed(0)}KB`;
+
+  if (spec.passthrough) {
+    const outPng = path.join(OUT_DIR, `${spec.slug}.png`);
+    await fs.copyFile(srcPath, outPng);
+    const outStat = await fs.stat(outPng);
+    console.log(
+      `${spec.slug.padEnd(24)} ${kb(srcStat.size).padStart(7)} -> ${kb(outStat.size).padStart(7)} (passthrough PNG)`,
+    );
+    return;
+  }
+
   const outFull = path.join(OUT_DIR, `${spec.slug}.webp`);
   const outPortrait = path.join(OUT_DIR, `${spec.slug}-portrait.webp`);
 
-  const srcStat = await fs.stat(srcPath);
   const meta = await sharp(srcPath).metadata();
   const srcW = meta.width ?? FULL_WIDTH;
   const srcH = meta.height ?? FULL_WIDTH;
@@ -72,7 +97,6 @@ async function processOne(spec: AssetSpec) {
     portraitStatSize = (await fs.stat(outPortrait)).size;
   }
 
-  const kb = (n: number) => `${(n / 1024).toFixed(0)}KB`;
   const portraitMsg = portraitStatSize !== null ? `, portrait ${kb(portraitStatSize)}` : "";
   console.log(
     `${spec.slug.padEnd(24)} ${kb(srcStat.size).padStart(7)} -> ${kb(fullStat.size).padStart(7)}${portraitMsg}`,

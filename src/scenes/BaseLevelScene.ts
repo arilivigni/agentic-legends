@@ -183,12 +183,12 @@ export abstract class BaseLevelScene extends Phaser.Scene {
     });
   }
 
-  protected pickPlayerTexture(cfg: LevelConfig): string {
-    const powers = this.initialPowers();
-    if (powers.includes("goggles") && this.textures.exists("adventurer-goggles")) return "adventurer-goggles";
-    if (powers.includes("bubbles") && this.textures.exists("adventurer-bubbles")) return "adventurer-bubbles";
-    if (powers.includes("fork") && this.textures.exists("adventurer-fork")) return "adventurer-fork";
-    return cfg.startingPlayerTexture;
+  protected pickPlayerTexture(_cfg: LevelConfig): string {
+    // The player now uses a single animated spritesheet; powers are shown via
+    // badge overlays rather than texture swaps. Fall back to the level's
+    // configured texture if the spritesheet failed to load.
+    if (this.textures.exists("adventurer-walk")) return "adventurer-walk";
+    return _cfg.startingPlayerTexture;
   }
 
   protected makePlatform(p: PlatformDef, top: number, bottom: number) {
