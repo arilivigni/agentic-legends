@@ -58,7 +58,9 @@ export class TouchControls {
     const cam = this.scene.cameras.main;
     const w = cam.width;
     const h = cam.height;
-    const r = Math.min(w, h) * 0.08; // base button radius
+    // Clamp button radius so phones in landscape don't get tiny buttons
+    // (small h) or oversized ones on tablets (large h).
+    const r = Math.max(38, Math.min(70, Math.min(w, h) * 0.075));
 
     const mkButton = (
       x: number,

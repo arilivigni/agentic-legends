@@ -81,6 +81,25 @@ export class Hud {
       lineSpacing: 4,
     }).setScrollFactor(0).setDepth(51);
     void panel; void header; void body;
+
+    // Tappable restart button — anchored just below the controls panel.
+    // Calls scene.scene.restart() with the scene's initial data so
+    // powers/hearts/wrongAnswers carry across the retry.
+    const restartX = scene.scale.width - 32;
+    const restartY = panelY + panelH + 28;
+    const restartBg = scene.add.circle(restartX, restartY, 22, 0x0d1117, 0.75)
+      .setStrokeStyle(2, 0xf78166).setScrollFactor(0).setDepth(60)
+      .setInteractive({ useHandCursor: true });
+    const restartGlyph = scene.add.text(restartX, restartY, "↺", {
+      fontFamily: "system-ui, sans-serif", fontSize: "26px", color: "#f78166",
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(61);
+    restartBg.on("pointerover", () => restartBg.setFillStyle(0x21262d, 0.85));
+    restartBg.on("pointerout", () => restartBg.setFillStyle(0x0d1117, 0.75));
+    restartBg.on("pointerdown", () => {
+      const data = scene.scene.settings.data;
+      scene.scene.restart(data);
+    });
+    void restartGlyph;
   }
 
   setHearts(n: number) {

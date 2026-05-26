@@ -52,6 +52,7 @@ export class PreloadScene extends Phaser.Scene {
       ["next-challenge-hero", "next-challenge-hero"],
       ["next-challenge-item", "next-challenge-item"],
       ["copilot-orb", "copilot-orb"],
+      ["qr-code", "qr-code"],
     ];
     for (const [key, slug] of keys) {
       const url = urlFor(slug);

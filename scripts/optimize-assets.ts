@@ -33,6 +33,14 @@ interface AssetSpec {
    * sheets where lossy compression would destroy hard pixel edges.
    */
   passthrough?: boolean;
+  /**
+   * When set, treat the source as an icon with a near-white background.
+   * The pipeline reads raw RGBA, sets any pixel whose channel sum is
+   * >= the threshold (out of 765) to alpha=0, resizes to the requested
+   * square, and writes `${slug}.png`. Used to turn the Copilot avatar
+   * JPG into a clean transparent orb sprite.
+   */
+  alphaKey?: { threshold: number; size: number };
 }
 
 const ASSETS: AssetSpec[] = [
@@ -51,6 +59,10 @@ const ASSETS: AssetSpec[] = [
   { file: "adventurer-mage-sheet.png", slug: "adventurer-walk", portrait: false, passthrough: true },
   { file: "adventurer-idle-sheet.png", slug: "adventurer-idle", portrait: false, passthrough: true },
   { file: "adventurer-jump-sheet.png", slug: "adventurer-jump", portrait: false, passthrough: true },
+  // Copilot avatar → final-stand goal orb. Strip the white background.
+  { file: "github-copilot.jpg", slug: "copilot-orb", portrait: false, alphaKey: { threshold: 720, size: 512 } },
+  // QR code shown on Victory screen — passthrough preserves crispness for scanning.
+  { file: "al-qrcode.png", slug: "qr-code", portrait: false, passthrough: true },
 ];
 
 async function ensureDir(dir: string) {
@@ -68,6 +80,32 @@ async function processOne(spec: AssetSpec) {
     const outStat = await fs.stat(outPng);
     console.log(
       `${spec.slug.padEnd(24)} ${kb(srcStat.size).padStart(7)} -> ${kb(outStat.size).padStart(7)} (passthrough PNG)`,
+    );
+    return;
+  }
+
+  if (spec.alphaKey) {
+    const { threshold, size } = spec.alphaKey;
+    const outPng = path.join(OUT_DIR, `${spec.slug}.png`);
+    // Resize first, then walk the raw RGBA buffer and clear any pixel
+    // whose channel sum >= threshold (white background → transparent).
+    const { data, info } = await sharp(srcPath)
+      .resize({ width: size, height: size, fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 0 } })
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    for (let i = 0; i < data.length; i += 4) {
+      const sum = data[i] + data[i + 1] + data[i + 2];
+      if (sum >= threshold) {
+        data[i + 3] = 0;
+      }
+    }
+    await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } })
+      .png({ compressionLevel: 9 })
+      .toFile(outPng);
+    const outStat = await fs.stat(outPng);
+    console.log(
+      `${spec.slug.padEnd(24)} ${kb(srcStat.size).padStart(7)} -> ${kb(outStat.size).padStart(7)} (alpha-keyed PNG)`,
     );
     return;
   }
