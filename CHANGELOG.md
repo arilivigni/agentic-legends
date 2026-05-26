@@ -7,6 +7,25 @@ This project follows [Semantic Versioning](https://semver.org/) and
 Versions in the `0.x` range are **beta** — APIs, levels, and balance may
 change at any time. The first GA release will be `1.0.0`.
 
+## [0.1.7] - Beta
+
+### Added
+- **Portrait-orientation rotation prompt.** When the game loads on a
+  small touch device held in portrait, a full-screen overlay now asks
+  the player to rotate to landscape so the Codia map, HUD legend, and
+  trivia cards all fit on screen. The overlay is hidden automatically
+  the moment the device flips to landscape and never appears on
+  desktops. (`index.html`, CSS `@media (orientation: portrait) and
+  (max-width: 900px)`.)
+
+### Changed
+- **HUD legend is now touch-aware.** On touch devices the controls
+  panel swaps the keyboard hints (Shift/Esc/R/Q) for the on-screen
+  glyphs the player can actually tap (◀ ▶ ⤒ ↺) plus a "tap an answer"
+  hint for the trivia card and a reminder to keep the phone in
+  landscape, so the legend stays useful and compact on mobile.
+  (`src/systems/Hud.ts`.)
+
 ## [0.1.6] - Beta
 
 ### Changed

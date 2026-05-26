@@ -17,11 +17,39 @@
       #game { width: 100vw; height: 100dvh; display: flex; align-items: center; justify-content: center; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); box-sizing: border-box; }
       #game canvas { image-rendering: pixelated; max-width: 100%; max-height: 100%; box-shadow: 0 0 60px rgba(120, 90, 220, 0.25); }
       #boot-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+      /* Portrait rotation prompt — only shown on small touch screens held in portrait.
+         Hidden entirely on desktops and on any landscape orientation, so the canvas
+         keeps the full landscape area for HUD legend + trivia card. */
+      #rotate-overlay {
+        position: fixed; inset: 0; z-index: 10;
+        display: none;
+        align-items: center; justify-content: center;
+        flex-direction: column; gap: 18px;
+        background: radial-gradient(circle at center, #161b22 0%, #0d1117 70%);
+        color: #e6edf3; text-align: center; padding: 32px;
+        font-family: system-ui, sans-serif;
+      }
+      #rotate-overlay .glyph { font-size: 72px; animation: rotate-hint 1.6s ease-in-out infinite; }
+      #rotate-overlay h1 { margin: 0; font-size: 22px; color: #f78166; font-family: Georgia, serif; }
+      #rotate-overlay p { margin: 0; font-size: 15px; color: #c9d1d9; max-width: 380px; line-height: 1.45; }
+      @keyframes rotate-hint {
+        0%, 100% { transform: rotate(-20deg); }
+        50%      { transform: rotate(70deg); }
+      }
+      @media (orientation: portrait) and (max-width: 900px) {
+        #rotate-overlay { display: flex; }
+        #game { visibility: hidden; }
+      }
     </style>
   </head>
   <body>
     <div id="game"></div>
     <div id="boot-msg">Loading Codia…</div>
+    <div id="rotate-overlay" aria-hidden="false">
+      <div class="glyph">📱</div>
+      <h1>Rotate your device to landscape</h1>
+      <p>Agentic Legends is best played with your phone turned sideways so the full Codia map, the controls legend, and trivia cards all fit on screen.</p>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

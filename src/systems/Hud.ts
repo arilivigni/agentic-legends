@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { Power } from "../entities/Adventurer";
+import { isTouchDevice } from "./TouchControls";
 
 const POWER_COLORS: Record<Power, number> = {
   fork: 0x9c8cff,
@@ -49,17 +50,28 @@ export class Hud {
       color: "#e6edf3",
     }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(50);
 
-    const controlsLines = [
-      "Move  ←/→ · A/D",
-      "Run   Shift",
-      "Jump  Space · W",
-      "Pause Esc · Mute M",
-      "Restart R · Quit Q",
-    ];
-    if (options.showLeapTip) {
+    const touch = isTouchDevice();
+    const controlsLines = touch
+      ? [
+          "Move  ◀  ▶",
+          "Jump  ⤒",
+          "Restart  ↺",
+          "Trivia  tap an answer",
+          "Tip: keep your phone in landscape",
+        ]
+      : [
+          "Move  ←/→ · A/D",
+          "Run   Shift",
+          "Jump  Space · W",
+          "Pause Esc · Mute M",
+          "Restart R · Quit Q",
+        ];
+    if (options.showLeapTip && !touch) {
       controlsLines.push("Tip: double-tap Space to leap higher");
+    } else if (options.showLeapTip && touch) {
+      controlsLines.push("Tip: double-tap ⤒ to leap higher");
     }
-    const panelW = 220;
+    const panelW = touch ? 200 : 220;
     const panelH = controlsLines.length * 18 + 28;
     const panelX = scene.scale.width - panelW - 16;
     const panelY = 16;
