@@ -38,7 +38,7 @@ export class VictoryScene extends Phaser.Scene {
     const qrSize = 280;
     this.add.rectangle(qrX, qrY, qrSize + 48, qrSize + 110, 0xffffff, 0.97)
       .setStrokeStyle(3, 0xf78166);
-    this.add.text(qrX, qrY - qrSize / 2 - 32, "Scan to win prizes!", {
+    this.add.text(qrX, qrY - qrSize / 2 - 32, "Scan to get points on the leaderboard!", {
       fontFamily: "Georgia, serif", fontSize: "22px", color: "#0d1117",
     }).setOrigin(0.5);
     if (this.textures.exists("qr-code")) {

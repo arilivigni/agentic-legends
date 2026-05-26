@@ -7,6 +7,48 @@ This project follows [Semantic Versioning](https://semver.org/) and
 Versions in the `0.x` range are **beta** — APIs, levels, and balance may
 change at any time. The first GA release will be `1.0.0`.
 
+## [0.1.6] - Beta
+
+### Changed
+- Victory-screen QR caption updated from "Scan to win prizes!" to
+  **"Scan to get points on the leaderboard!"** to match the booth's
+  scoring flow.
+
+## [0.1.5] - Beta
+
+### Added
+- **Final-stand goal sprite uses the GitHub Copilot avatar.** The
+  source `github-copilot.jpg` (1200×1200) is now baked into a clean
+  transparent `copilot-orb.png` via a new `alphaKey` branch in
+  `scripts/optimize-assets.ts` (alpha-keys near-white pixels, resizes
+  to 512×512). The orb hovers at the end of the Mainline arena and
+  triggers victory on touch.
+- **Prize QR code on the Victory screen.** After defeating the final
+  level, the closing narration sits on the left and a pristine
+  scannable QR card ("Scan to win prizes!") sits on the right.
+  `al-qrcode.png` is shipped passthrough so it stays pixel-perfect.
+- **Tappable retry/restart UI for mobile**:
+  - New `↺` button in the HUD restarts the current level with the
+    same `{powers, hearts, wrongAnswers}` data.
+  - Game Over screen now offers large "Retry stage" and "Back to
+    title" buttons in addition to the R / T keyboard shortcuts.
+  - Victory screen has a "▶ Play again" button (in addition to Space).
+
+### Changed
+- **Mobile / landscape phone polish.** `index.html` adds
+  `apple-mobile-web-app-capable`, `mobile-web-app-capable`, and
+  `apple-mobile-web-app-status-bar-style: black-translucent` metas,
+  plus `user-scalable=no` and `env(safe-area-inset-*)` padding on
+  `#game` so the notch and home indicator don't overlap the canvas.
+  `TouchControls` button radius is clamped to 38–70 px so the D-pad
+  and jump button stay comfortable across phone and tablet sizes.
+
+### Verified
+- Wrong-answer → next-level extra-bug penalty fires on **every**
+  knowledge-check transition (Mona→Ducky→Copilot→Boss) via the
+  existing `wrongAnswers` plumbing in `BaseLevelScene` and
+  `BossMainlineScene`. HUD banner copy unchanged.
+
 ## [0.1.4] - Beta
 
 ### Added
