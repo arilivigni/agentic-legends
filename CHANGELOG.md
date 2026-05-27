@@ -7,6 +7,22 @@ This project follows [Semantic Versioning](https://semver.org/) and
 Versions in the `0.x` range are **beta** — APIs, levels, and balance may
 change at any time. The first GA release will be `1.0.0`.
 
+## [0.1.9] - Beta
+
+### Changed
+- **Larger HUD legend on touch devices.** The "CONTROLS" panel in the
+  top-right corner now uses a 20 px monospace body (up from 13 px), an
+  18 px bold header, taller line-height, and a 320 px-wide panel so
+  the on-screen glyphs (`◀ ▶ ⤒ ↺ ⛶`) are comfortably readable on a
+  landscape phone. Desktop sizing is unchanged. Adds a `Fullscreen ⛶`
+  row to the legend on touch. (`src/systems/Hud.ts`.)
+- **Larger trivia card on touch devices.** The Knowledge Check modal
+  now uses a 30 px header, 26 px prompt, 22 px option text (up from
+  17 px), 50 px-tall option rows with 56 px spacing, a 1100 × 560
+  card, and a beefier "Tap or press Space to continue" pill so the
+  quiz is easy to read and tap on a phone in landscape. Desktop
+  sizing is unchanged. (`src/systems/Quiz.ts`.)
+
 ## [0.1.8] - Beta
 
 ### Added

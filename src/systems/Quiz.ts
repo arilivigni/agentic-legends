@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import type { QuizQuestion } from "../data/quizzes";
 import { shuffleQuestion } from "../util/shuffle";
+import { isTouchDevice } from "./TouchControls";
 
 /**
  * Modal multiple-choice quiz. Shown at the end of each level once the player
@@ -16,44 +17,56 @@ export class Quiz {
 
   show(question: QuizQuestion): Promise<{ wrongCount: number }> {
     const q = shuffleQuestion(question);
+    const touch = isTouchDevice();
+    // Sizing — larger fonts and taller option rows on touch devices so
+    // the trivia card is comfortably readable / tappable on phones.
+    const headerSize = touch ? 30 : 24;
+    const promptSize = touch ? 26 : 20;
+    const optionSize = touch ? 22 : 17;
+    const feedbackSize = touch ? 20 : 16;
+    const continueSize = touch ? 22 : 18;
+    const rowH = touch ? 50 : 32;
+    const rowStep = touch ? 56 : 38;
     return new Promise((resolve) => {
       let wrongCount = 0;
       const w = this.scene.scale.width;
       const h = this.scene.scale.height;
+      const cardW = touch ? Math.min(w - 40, 1100) : Math.min(w - 80, 880);
+      const cardH = touch ? 560 : 460;
 
       const dim = this.scene.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.7)
         .setScrollFactor(0).setDepth(300);
-      const card = this.scene.add.rectangle(w / 2, h / 2, Math.min(w - 80, 880), 460, 0x161b22, 0.98)
+      const card = this.scene.add.rectangle(w / 2, h / 2, cardW, cardH, 0x161b22, 0.98)
         .setStrokeStyle(3, 0xf78166).setScrollFactor(0).setDepth(301);
 
-      const header = this.scene.add.text(w / 2, h / 2 - 200, "Knowledge Check", {
+      const header = this.scene.add.text(w / 2, h / 2 - (touch ? 240 : 200), "Knowledge Check", {
         fontFamily: "Georgia, serif",
-        fontSize: "24px",
+        fontSize: `${headerSize}px`,
         color: "#f78166",
       }).setOrigin(0.5).setScrollFactor(0).setDepth(302);
 
-      const prompt = this.scene.add.text(w / 2, h / 2 - 130, q.prompt, {
+      const prompt = this.scene.add.text(w / 2, h / 2 - (touch ? 180 : 130), q.prompt, {
         fontFamily: "system-ui, sans-serif",
-        fontSize: "20px",
+        fontSize: `${promptSize}px`,
         color: "#e6edf3",
         align: "center",
-        wordWrap: { width: Math.min(w - 140, 800) },
+        wordWrap: { width: Math.min(w - 140, touch ? 1000 : 800) },
       }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(302);
 
-      const feedback = this.scene.add.text(w / 2, h / 2 + 130, "", {
+      const feedback = this.scene.add.text(w / 2, h / 2 + (touch ? 170 : 130), "", {
         fontFamily: "system-ui, sans-serif",
-        fontSize: "16px",
+        fontSize: `${feedbackSize}px`,
         color: "#8b949e",
         align: "center",
-        wordWrap: { width: Math.min(w - 140, 800) },
+        wordWrap: { width: Math.min(w - 140, touch ? 1000 : 800) },
       }).setOrigin(0.5).setScrollFactor(0).setDepth(302);
 
-      const continueLabel = this.scene.add.text(w / 2, h / 2 + 195, "▶ Tap or press Space to continue", {
+      const continueLabel = this.scene.add.text(w / 2, h / 2 + (touch ? 240 : 195), "▶ Tap or press Space to continue", {
         fontFamily: "system-ui, sans-serif",
-        fontSize: "18px",
+        fontSize: `${continueSize}px`,
         color: "#3fb950",
         backgroundColor: "#0d1117",
-        padding: { left: 12, right: 12, top: 6, bottom: 6 },
+        padding: { left: touch ? 16 : 12, right: touch ? 16 : 12, top: touch ? 10 : 6, bottom: touch ? 10 : 6 },
       }).setOrigin(0.5).setScrollFactor(0).setDepth(302).setVisible(false).setInteractive({ useHandCursor: true });
       continueLabel.on("pointerdown", () => continueHandler());
 
@@ -61,14 +74,14 @@ export class Quiz {
       const optionBgs: Phaser.GameObjects.Rectangle[] = [];
       let answered = false;
 
-      const yStart = h / 2 - 30;
+      const yStart = h / 2 - (touch ? 60 : 30);
       q.options.forEach((opt, i) => {
-        const y = yStart + i * 38;
-        const bg = this.scene.add.rectangle(w / 2, y, Math.min(w - 200, 720), 32, 0x21262d, 1)
+        const y = yStart + i * rowStep;
+        const bg = this.scene.add.rectangle(w / 2, y, Math.min(w - 200, touch ? 940 : 720), rowH, 0x21262d, 1)
           .setStrokeStyle(1, 0x30363d).setScrollFactor(0).setDepth(302).setInteractive({ useHandCursor: true });
         const t = this.scene.add.text(w / 2, y, `${String.fromCharCode(65 + i)}.  ${opt}`, {
           fontFamily: "system-ui, sans-serif",
-          fontSize: "17px",
+          fontSize: `${optionSize}px`,
           color: "#e6edf3",
         }).setOrigin(0.5).setScrollFactor(0).setDepth(303);
         bg.on("pointerover", () => { if (!answered) bg.setFillStyle(0x30363d); });

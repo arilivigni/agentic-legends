@@ -57,8 +57,8 @@ export class Hud {
           "Move  ◀  ▶",
           "Jump  ⤒",
           "Restart  ↺",
+          "Fullscreen  ⛶",
           "Trivia  tap an answer",
-          "Tip: keep your phone in landscape",
         ]
       : [
           "Move  ←/→ · A/D",
@@ -72,8 +72,13 @@ export class Hud {
     } else if (options.showLeapTip && touch) {
       controlsLines.push("Tip: double-tap ⤒ to leap higher");
     }
-    const panelW = touch ? 200 : 220;
-    const panelH = controlsLines.length * 18 + 28;
+    const headerSize = touch ? 18 : 12;
+    const bodySize = touch ? 20 : 13;
+    const lineHeight = touch ? 28 : 18;
+    const padX = touch ? 14 : 10;
+    const padTop = touch ? 10 : 6;
+    const panelW = touch ? 320 : 220;
+    const panelH = controlsLines.length * lineHeight + (touch ? 44 : 28);
     const panelX = scene.scale.width - panelW - 16;
     const panelY = 16;
     const panel = scene.add.rectangle(panelX, panelY, panelW, panelH, 0x0d1117, 0.65)
@@ -81,17 +86,17 @@ export class Hud {
       .setStrokeStyle(1, 0xf78166, 0.7)
       .setScrollFactor(0)
       .setDepth(50);
-    const header = scene.add.text(panelX + 10, panelY + 6, "CONTROLS", {
+    const header = scene.add.text(panelX + padX, panelY + padTop, "CONTROLS", {
       fontFamily: "system-ui, sans-serif",
-      fontSize: "12px",
+      fontSize: `${headerSize}px`,
       color: "#f78166",
       fontStyle: "bold",
     }).setScrollFactor(0).setDepth(51);
-    const body = scene.add.text(panelX + 10, panelY + 24, controlsLines.join("\n"), {
+    const body = scene.add.text(panelX + padX, panelY + padTop + headerSize + 6, controlsLines.join("\n"), {
       fontFamily: "ui-monospace, Menlo, Consolas, monospace",
-      fontSize: "13px",
+      fontSize: `${bodySize}px`,
       color: "#c9d1d9",
-      lineSpacing: 4,
+      lineSpacing: touch ? 8 : 4,
     }).setScrollFactor(0).setDepth(51);
     void panel; void header; void body;
 
