@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import type { Power } from "../entities/Adventurer";
 import { isTouchDevice } from "./TouchControls";
+import { addFullscreenButton } from "./FullscreenButton";
 
 const POWER_COLORS: Record<Power, number> = {
   fork: 0x9c8cff,
@@ -112,6 +113,10 @@ export class Hud {
       scene.scene.restart(data);
     });
     void restartGlyph;
+
+    // Fullscreen toggle — only rendered on touch devices, placed just left
+    // of the restart button so both controls stay grouped in the corner.
+    addFullscreenButton(scene, restartX - 52, restartY);
   }
 
   setHearts(n: number) {

@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config";
 import { TAGLINE } from "../data/story";
+import { addFullscreenButton } from "../systems/FullscreenButton";
+import { isTouchDevice } from "../systems/TouchControls";
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
@@ -47,11 +49,13 @@ export class TitleScene extends Phaser.Scene {
       color: "#8b949e",
     }).setOrigin(1, 1);
 
-    const prompt = this.add.text(w / 2, h - 120, "Press SPACE or click to begin", {
+    const prompt = this.add.text(w / 2, h - 120, "Press SPACE or tap here to begin", {
       fontFamily: "system-ui, sans-serif",
       fontSize: "22px",
       color: "#f78166",
-    }).setOrigin(0.5);
+      backgroundColor: "#0d1117",
+      padding: { left: 16, right: 16, top: 8, bottom: 8 },
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
     this.tweens.add({ targets: prompt, alpha: 0.3, duration: 800, yoyo: true, repeat: -1 });
 
     this.add.text(w / 2, h - 60, "Arrows / WASD move · Shift run · Space jump · R restart · Q quit · Esc pause · M mute", {
@@ -60,9 +64,18 @@ export class TitleScene extends Phaser.Scene {
       color: "#8b949e",
     }).setOrigin(0.5);
 
+    addFullscreenButton(this, w - 40, 40);
+    if (isTouchDevice()) {
+      this.add.text(w - 70, 40, "Fullscreen", {
+        fontFamily: "system-ui, sans-serif",
+        fontSize: "14px",
+        color: "#6cd0ff",
+      }).setOrigin(1, 0.5);
+    }
+
     const start = () => this.scene.start("Intro");
     this.input.keyboard?.once("keydown-SPACE", start);
     this.input.keyboard?.once("keydown-ENTER", start);
-    this.input.once("pointerdown", start);
+    prompt.once("pointerdown", start);
   }
 }

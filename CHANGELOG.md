@@ -7,6 +7,26 @@ This project follows [Semantic Versioning](https://semver.org/) and
 Versions in the `0.x` range are **beta** — APIs, levels, and balance may
 change at any time. The first GA release will be `1.0.0`.
 
+## [0.1.8] - Beta
+
+### Added
+- **Fullscreen toggle (`⛶`) for mobile devices.** A new tappable button
+  appears on the Title screen (top-right, labeled "Fullscreen") and in
+  the in-game HUD (next to the `↺` restart button) on touch devices.
+  On Android Chrome / Edge and other browsers that support the
+  Fullscreen API it calls `scene.scale.toggleFullscreen()` from the tap
+  gesture, hiding the browser chrome. On iOS Safari — which blocks the
+  Fullscreen API — the button shows a small dialog telling the player
+  to use Share → **Add to Home Screen** and launch from the home icon
+  (already enabled via the existing `apple-mobile-web-app-capable`
+  metas). New helper: `src/systems/FullscreenButton.ts`.
+
+### Changed
+- **Title screen tap-to-start is now a dedicated button.** The
+  "Press SPACE or tap here to begin" prompt is now an interactive
+  pill, so tapping the new fullscreen button (or anywhere else on the
+  Title scene) no longer accidentally starts the game.
+
 ## [0.1.7] - Beta
 
 ### Added
